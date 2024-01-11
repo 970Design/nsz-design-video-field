@@ -33,8 +33,8 @@ Yes!
 = Does this plugin display the uploaded video for me? =
 No, you will need to use a video library of your choosing to display the video.  This plugin will upload your video to your Cloudflare account and provide you with HLS and Dash manifests for streaming, a thumbnail, and preview video URL.
 == Screenshots ==
-1. Desktop view
-2. Mobile view
+1. Settings Page
+2. Field example after uploading video
 == Changelog ==
 = v1.0.0 =
 
