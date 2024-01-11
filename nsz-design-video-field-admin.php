@@ -62,8 +62,8 @@ function nsz_design_video_field_settings_page()
 
         <form name="form-nsz-cloudflare-stream-api-token" method="post" action="">
             <h2>API Token</h2>
-            <p><label>API Token: <span class="required">*</span> </label> <br />
-                <input required type="text" name="<?php echo $nsz_cfstream_api_field; ?>" value="<?php echo $nsz_cfstream_api_value ?? ''; ?>" size="35">
+            <p><label for="<?php echo $nsz_cfstream_api_field; ?>">API Token: <span class="required">*</span> </label> <br />
+                <input required type="text" id="<?php echo $nsz_cfstream_api_field; ?>" name="<?php echo $nsz_cfstream_api_field; ?>" value="<?php echo $nsz_cfstream_api_value ?? ''; ?>" size="35">
             </p>
             <input type="hidden" name="<?php echo $nsz_cfstream_api_hidden; ?>" value="Y">
             <p class="submit">
@@ -75,8 +75,8 @@ function nsz_design_video_field_settings_page()
 
         <form name="form-nsz-cloudflare-stream-account-id" method="post" action="">
             <h2>Account ID</h2>
-            <p><label>Account ID: <span class="required">*</span> </label> <br />
-                <input required type="text" name="<?php echo $nsz_cfstream_account_id_field; ?>" value="<?php echo $nsz_cfstream_account_id_value ?? ''; ?>" size="35">
+            <p><label for="<?php echo $nsz_cfstream_account_id_field; ?>">Account ID: <span class="required">*</span> </label> <br />
+                <input required type="text" id="<?php echo $nsz_cfstream_account_id_field; ?>" name="<?php echo $nsz_cfstream_account_id_field; ?>" value="<?php echo $nsz_cfstream_account_id_value ?? ''; ?>" size="35">
             </p>
             <input type="hidden" name="<?php echo $nsz_cfstream_account_id_hidden; ?>" value="Y">
             <p class="submit">
@@ -88,8 +88,8 @@ function nsz_design_video_field_settings_page()
 
         <form name="form-nsz-cloudflare-stream-account-email" method="post" action="">
             <h2>Account Email</h2>
-            <p><label>Account Email:  <span class="required">*</span> </label> <br />
-                <input required type="email" name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo $nsz_cfstream_account_email_value ?? ''; ?>" size="35">
+            <p><label for="<?php echo $nsz_cfstream_account_email_field; ?>">Account Email:  <span class="required">*</span> </label> <br />
+                <input required type="email" id="<?php echo $nsz_cfstream_account_email_field; ?>" name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo $nsz_cfstream_account_email_value ?? ''; ?>" size="35">
             </p>
             <input type="hidden" name="<?php echo $nsz_cfstream_account_email_hidden; ?>" value="Y">
             <p class="submit">
