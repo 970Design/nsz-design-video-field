@@ -160,8 +160,10 @@ class nsz_acf_field_cloudflare_stream extends \acf_field {
         if ($api_token && $account_id && $account_email) {
             //loop through $field['value'] and create variables based on key names
             //(unsure why they are sometimes undefined when referenced by key)
-            foreach ($field['value'] as $key => $value) {
-                $$key = $value;
+            if (is_array($field['value']) && !empty($field['value'])) {
+                foreach ($field['value'] as $key => $value) {
+                    $$key = $value;
+                }
             }
 
             if (!isset($hls)) { $hls = ''; }
