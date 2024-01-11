@@ -1,0 +1,57 @@
+/**
+ * Included when fields of this type are rendered for editing by publishers.
+ */
+
+.acf-field-cloudflare-stream .cloudflare-stream-success {
+    color: green;
+    margin-top: 1rem;
+}
+
+.acf-field-cloudflare-stream .cloudflare-stream-error {
+    color: red;
+    margin-top: 1rem;
+}
+
+.acf-field-cloudflare-stream .cloudflare-stream-progress-wrap {
+    display: none;
+    margin-top: 1rem;
+}
+
+.acf-field-cloudflare-stream .cloudflare-stream-progress-wrap span {
+    font-size: .8rem;
+}
+
+.acf-field-cloudflare-stream .wrap-upload-field {
+    display: none;
+}
+
+.acf-field-cloudflare-stream .wrap-upload-field.active {
+    display: block;
+}
+
+.acf-field-cloudflare-stream .cloudflare-video-thumbnail-preview {
+    width: 200px;
+    height: auto;
+    margin-bottom: 1rem;
+}
+
+.acf-field-cloudflare-stream .cloudflare-video-clear-wrapper {
+    margin-top: 1rem;
+}
+
+.acf-field-cloudflare-stream .cloudflare-video-details {
+    display: none;
+}
+
+.acf-field-cloudflare-stream .cloudflare-video-details h4 {
+    margin-bottom: .5rem;
+}
+
+.acf-field-cloudflare-stream .cloudflare-video-details input {
+    font-size: .8rem;
+    margin-bottom: .5rem;
+}
+
+.acf-field-cloudflare-stream .cloudflare-video-details.active {
+    display: block;
+}
