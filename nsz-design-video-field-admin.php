@@ -58,10 +58,10 @@ function nsz_design_video_field_settings_page()
 
     ?>
     <div class="wrap">
-        <h1>Cloudflare Stream ACF Field Settings</h1>
+        <h1>970 Design Video Field Settings</h1>
 
         <form name="form-nsz-cloudflare-stream-api-token" method="post" action="">
-            <h2>API Token</h2>
+            <h2>Cloudflare API Token</h2>
             <p><label for="<?php echo $nsz_cfstream_api_field; ?>">API Token: <span class="required">*</span> </label> <br />
                 <input required type="text" id="<?php echo $nsz_cfstream_api_field; ?>" name="<?php echo $nsz_cfstream_api_field; ?>" value="<?php echo $nsz_cfstream_api_value ?? ''; ?>" size="35">
             </p>
@@ -69,12 +69,14 @@ function nsz_design_video_field_settings_page()
             <p class="submit">
                 <input type="submit" name="Submit" class="button-primary" value="Update API Token" />
             </p>
+
+            <p class="small"><a href="https://developers.cloudflare.com/fundamentals/api/get-started/create-token/" target="_blank">How to create an API Token</a></p>
         </form>
 
         <hr />
 
         <form name="form-nsz-cloudflare-stream-account-id" method="post" action="">
-            <h2>Account ID</h2>
+            <h2>Cloudflare Account ID</h2>
             <p><label for="<?php echo $nsz_cfstream_account_id_field; ?>">Account ID: <span class="required">*</span> </label> <br />
                 <input required type="text" id="<?php echo $nsz_cfstream_account_id_field; ?>" name="<?php echo $nsz_cfstream_account_id_field; ?>" value="<?php echo $nsz_cfstream_account_id_value ?? ''; ?>" size="35">
             </p>
@@ -82,14 +84,17 @@ function nsz_design_video_field_settings_page()
             <p class="submit">
                 <input type="submit" name="Submit" class="button-primary" value="Update Account ID" />
             </p>
+            <p class="small">
+                <a href="https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/ " target="_blank">How to find your Account ID</a>
+            </p>
         </form>
 
         <hr />
 
         <form name="form-nsz-cloudflare-stream-account-email" method="post" action="">
-            <h2>Account Email</h2>
+            <h2>Cloudflare Account Email</h2>
             <p><label for="<?php echo $nsz_cfstream_account_email_field; ?>">Account Email:  <span class="required">*</span> </label> <br />
-                <input required type="email" id="<?php echo $nsz_cfstream_account_email_field; ?>" name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo $nsz_cfstream_account_email_value ?? ''; ?>" size="35">
+                <input required type="email" id="<?php echo $nsz_cfstream_account_email_field; ?> name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo $nsz_cfstream_account_email_value ?? ''; ?>" size="35">
             </p>
             <input type="hidden" name="<?php echo $nsz_cfstream_account_email_hidden; ?>" value="Y">
             <p class="submit">
