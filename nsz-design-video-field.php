@@ -34,6 +34,23 @@ require_once 'nsz-design-video-field-admin.php';
 include_once __DIR__.'/acf-cloudflare-stream/init.php';
 
 
+add_filter( 'plugin_action_links_nsz-design-video-field/nsz-design-video-field.php', 'nsz_design_video_field_settings_link' );
+function nsz_design_video_field_settings_link( $links ) {
+    $url = esc_url( add_query_arg(
+        'page',
+        'nsz_design_video_field_settings',
+        get_admin_url() . 'options-general.php'
+    ) );
+
+    $settings_link = "<a href='$url'>" . __( 'Settings' ) . '</a>';
+
+    array_push(
+        $links,
+        $settings_link
+    );
+    return $links;
+}
+
 //create an ajax route to acquire a cloudflare upload url without exposing API
 //currently doesn't work; will keep returning new URLs to upload when called in recursion by tus, so it can never start
 add_action('rest_api_init', 'nsz_cloudflare_stream_url_route');

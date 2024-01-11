@@ -1,6 +1,6 @@
 <?php
 
-function nsz_cloudflare_stream_field_settings_page()
+function nsz_design_video_field_settings_page()
 {
 
     //must check that the user has the required capability
@@ -62,8 +62,8 @@ function nsz_cloudflare_stream_field_settings_page()
 
         <form name="form-nsz-cloudflare-stream-api-token" method="post" action="">
             <h2>API Token</h2>
-            <p><label>API Token:</label>
-                <input type="text" name="<?php echo $nsz_cfstream_api_field; ?>" value="<?php echo $nsz_cfstream_api_value ?? ''; ?>" size="35">
+            <p><label>API Token: <span class="required">*</span> </label> <br />
+                <input required type="text" name="<?php echo $nsz_cfstream_api_field; ?>" value="<?php echo $nsz_cfstream_api_value ?? ''; ?>" size="35">
             </p>
             <input type="hidden" name="<?php echo $nsz_cfstream_api_hidden; ?>" value="Y">
             <p class="submit">
@@ -75,8 +75,8 @@ function nsz_cloudflare_stream_field_settings_page()
 
         <form name="form-nsz-cloudflare-stream-account-id" method="post" action="">
             <h2>Account ID</h2>
-            <p><label>Account ID:</label>
-                <input type="text" name="<?php echo $nsz_cfstream_account_id_field; ?>" value="<?php echo $nsz_cfstream_account_id_value ?? ''; ?>" size="35">
+            <p><label>Account ID: <span class="required">*</span> </label> <br />
+                <input required type="text" name="<?php echo $nsz_cfstream_account_id_field; ?>" value="<?php echo $nsz_cfstream_account_id_value ?? ''; ?>" size="35">
             </p>
             <input type="hidden" name="<?php echo $nsz_cfstream_account_id_hidden; ?>" value="Y">
             <p class="submit">
@@ -88,8 +88,8 @@ function nsz_cloudflare_stream_field_settings_page()
 
         <form name="form-nsz-cloudflare-stream-account-email" method="post" action="">
             <h2>Account Email</h2>
-            <p><label>Account Email:</label>
-                <input type="email" name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo $nsz_cfstream_account_email_value ?? ''; ?>" size="35">
+            <p><label>Account Email:  <span class="required">*</span> </label> <br />
+                <input required type="email" name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo $nsz_cfstream_account_email_value ?? ''; ?>" size="35">
             </p>
             <input type="hidden" name="<?php echo $nsz_cfstream_account_email_hidden; ?>" value="Y">
             <p class="submit">
@@ -101,9 +101,9 @@ function nsz_cloudflare_stream_field_settings_page()
     <?php
 }
 
-function nsz_cloudflare_stream_field_menu_item()
+function nsz_design_video_field_menu_item()
 {
-    add_options_page("Cloudflare Stream ACF Field Settings", "Cloudflare Stream ACF Field Settings", "manage_options", "nsz_cloudflare_stream_field_settings", "nsz_cloudflare_stream_field_settings_page");
+    add_options_page("Cloudflare Stream ACF Field Settings", "Cloudflare Stream ACF Field Settings", "manage_options", "nsz_design_video_field_settings", "nsz_design_video_field_settings_page");
 }
 
-add_action("admin_menu", "nsz_cloudflare_stream_field_menu_item");
+add_action("admin_menu", "nsz_design_video_field_menu_item");
