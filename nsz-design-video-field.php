@@ -4,7 +4,6 @@
  * NSZ Design Video Field
  *
  * Plugin Name: 970 Design Video Field
- * Plugin URI:  https://970design.com/
  * Description: An Advanced Custom Fields (ACF) Field for Cloudflare Stream.
  * Version:     1.0
  * Author:      970 Design
