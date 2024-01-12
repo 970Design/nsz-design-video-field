@@ -231,7 +231,7 @@ class nsz_acf_field_cloudflare_stream extends \acf_field {
                     </div>
 
                     <div class="wrap-item cloudflare-video-clear-wrapper">
-                        <button class="nsz-cloudflare-stream-clear-video" type="button">Clear Video</button>
+                        <button class="nsz-cloudflare-stream-clear-video button-primary" type="button">Clear Video</button>
                     </div>
                 </div>
 

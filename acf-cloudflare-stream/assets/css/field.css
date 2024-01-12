@@ -3,11 +3,13 @@
  */
 
 .acf-field-cloudflare-stream .cloudflare-stream-success {
+    font-weight: bold;
     color: green;
     margin-top: 1rem;
 }
 
 .acf-field-cloudflare-stream .cloudflare-stream-error {
+    font-weight: bold;
     color: red;
     margin-top: 1rem;
 }
