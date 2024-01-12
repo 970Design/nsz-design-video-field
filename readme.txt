@@ -31,7 +31,7 @@ Yes!
 = Does this plugin require a subscription to Cloudflare Stream? =
 Yes!
 = Does this plugin display the uploaded video for me? =
-No, you will need to use a video library of your choosing to display the video.  This plugin will upload your video to your Cloudflare account and provide you with HLS and Dash manifests for streaming, a thumbnail, and preview video URL.
+No, you will need to use a video library of your choosing to display the video.  This plugin will upload your video to your Cloudflare account and provide you with HLS and Dash manifests for streaming, a thumbnail, and preview video URL. Please review the Cloudflare documentation for implementation examples: https://developers.cloudflare.com/stream/
 == Screenshots ==
 1. Settings Page
 2. Field example after uploading video
