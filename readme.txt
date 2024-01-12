@@ -28,7 +28,7 @@ This section describes how to install the plugin and get it working.
 
 3. Add your Cloudflare credentials to the settings page
 
-4. Use the new Cloudflare Stream ACF field like any other field
+4. Use the new Cloudflare Stream field like any other ACF field
 == Frequently Asked Questions ==
 = Does this plugin require Advanced Custom Fields? =
 Yes!
