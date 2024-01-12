@@ -25,6 +25,8 @@ This section describes how to install the plugin and get it working.
 1. Install plugin from WordPress directory
 
 2. Activate the plugin through the 'Plugins' menu in WordPress
+
+3. Place the ACF field type of Cloudflare Stream where your video will live
 == Frequently Asked Questions ==
 = Does this plugin require Advanced Custom Fields? =
 Yes!
