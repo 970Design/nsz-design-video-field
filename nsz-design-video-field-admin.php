@@ -94,7 +94,7 @@ function nsz_design_video_field_settings_page()
         <form name="form-nsz-cloudflare-stream-account-email" method="post" action="">
             <h2>Cloudflare Account Email</h2>
             <p><label for="<?php echo $nsz_cfstream_account_email_field; ?>">Account Email:  <span class="required">*</span> </label> <br />
-                <input required type="email" id="<?php echo $nsz_cfstream_account_email_field; ?> name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo $nsz_cfstream_account_email_value ?? ''; ?>" size="35">
+                <input required type="email" id="<?php echo $nsz_cfstream_account_email_field; ?>" name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo $nsz_cfstream_account_email_value ?? ''; ?>" size="35">
             </p>
             <input type="hidden" name="<?php echo $nsz_cfstream_account_email_hidden; ?>" value="Y">
             <p class="submit">
