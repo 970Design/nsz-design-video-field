@@ -91,7 +91,7 @@ class nsz_acf_field_cloudflare_stream extends \acf_field {
 			'error'	=> __( 'Error! Please enter a higher value', 'cloudflare-stream' ),
 		);
 
-        $protocol = stripos($_SERVER['SERVER_PROTOCOL'],'https') === 0 ? 'https://' : 'http://';
+				$protocol = is_ssl() ? 'https://' : 'http://';
         $domainName = $_SERVER['HTTP_HOST'];
 
 		$this->env = array(
