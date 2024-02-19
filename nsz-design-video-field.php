@@ -5,7 +5,7 @@
  *
  * Plugin Name: 970 Design Video Field
  * Description: An Advanced Custom Fields (ACF) Field for Cloudflare Stream.
- * Version:     1.2
+ * Version:     1.3
  * Author:      970 Design
  * Author URI:  https://970design.com/
  * License:     GPLv2 or later
@@ -113,21 +113,6 @@ function nsz_cloudflare_stream_url_ajax()
     header("X-Auth-Email: ".$account_email);
     header("X-Auth-Key: ".$api_token);
     header('Location: '.$headers['location'][0] ?? null);
-
-    //$headers_array = array();
-    //$headers_array['Access-Control-Expose-Headers'] = '*';
-    //$headers_array['Access-Control-Allow-Headers'] = '*';
-    //$headers_array['Access-Control-Allow-Origin'] = '*';
-    //$headers_array['Location'] = $headers['location'][0] ?? null;
-    //$headers_array['X-Auth-Email'] = $account_email;
-    //$headers_array['X-Auth-Key'] = $api_token;
-    //$headers_array['Authorization'] = 'bearer '.$api_token;
-
-    //return new \WP_REST_Response(null, 200, $headers_array);
-
-    //rest_ensure_response();
-
-    //return $headers['location'][0] ?? null;
 
     exit();
 }

@@ -280,7 +280,7 @@ class nsz_acf_field_cloudflare_stream extends \acf_field {
 			$version
 		);
 
-        wp_enqueue_script( 'nsz-cloudflare-stream-tus' );
+		wp_enqueue_script( 'nsz-cloudflare-stream-tus' );
 		wp_enqueue_script( 'nsz-cloudflare-stream' );
 		wp_enqueue_style( 'nsz-cloudflare-stream' );
 

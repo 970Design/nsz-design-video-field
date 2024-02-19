@@ -1,16 +1,26 @@
 /**
  * Included when fields of this type are rendered for editing by publishers.
  */
+ :root {
+    --nsz-design-video-container-width: 45rem;
+    --nsz-design-video-container-padding: 1.5rem;
+    --nsz-design-video-border-radius: 0.6rem;
+    --nsz-design-video-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 0 2px rgba(0, 0, 0, 0.16);
+    --nsz-design-video-blue: #0A9FCC;
+    --nsz-design-video-red: #cc0a0a;
+    --nsz-design-video-green: #2fcc0a;
+    --nsz-design-video-light-grey: #f6f7f7;
+ }
 
 .acf-field-cloudflare-stream .cloudflare-stream-success {
     font-weight: bold;
-    color: green;
+    color: var(--nsz-design-video-green);
     margin-top: 1rem;
 }
 
 .acf-field-cloudflare-stream .cloudflare-stream-error {
     font-weight: bold;
-    color: red;
+    color: var(--nsz-design-video-red);
     margin-top: 1rem;
 }
 
@@ -56,4 +66,96 @@
 
 .acf-field-cloudflare-stream .cloudflare-video-details.active {
     display: block;
+}
+
+.settings_page_nsz_design_video_field_settings #wpcontent {
+    padding-left: 0;
+}
+
+.wp-core-ui.settings_page_nsz_design_video_field_settings .button-primary,
+.wp-core-ui.settings_page_nsz_design_video_field_settings .button-primary:active,
+.wp-core-ui.settings_page_nsz_design_video_field_settings .button-primary:hover,
+.wp-core-ui.settings_page_nsz_design_video_field_settings .button-primary:focus {
+    background: var(--nsz-design-video-blue);
+    border-color: var(--nsz-design-video-blue);
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+}
+
+.wp-core-ui.settings_page_nsz_design_video_field_settings .button-primary:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--nsz-design-video-blue);
+}
+
+.nsz-design-video-header {
+    margin-bottom: 1rem;
+    background: white;
+}
+
+.nsz-design-video-header-title {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nsz-design-video-wordmark {
+    max-width: 10rem;
+}
+
+.nsz-design-video-title {
+    padding: var(--nsz-design-video-container-padding);
+    padding-bottom: 0.5rem;
+    margin: 0;
+}
+
+.nsz-design-video-card {
+    box-shadow: var(--nsz-design-video-box-shadow);
+    border-radius: var(--nsz-design-video-border-radius);
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+    background: white;
+    color: black;
+}
+
+.nsz-design-video-container {
+    margin: 0 auto;
+    text-align: left;
+    max-width: var(--nsz-design-video-container-width);
+    padding: var(--nsz-design-video-container-padding);
+}
+
+.nsz-design-video-admin label {
+    font-weight: 500;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.nsz-design-video-admin input:not([type="submit"]) {
+    min-width: 22rem;
+}
+
+.nsz-design-video-admin .submit {
+    margin-bottom: 0;
+}
+
+.nsz-design-video-admin a {
+    color: var(--nsz-design-video-blue);
+}
+
+.nsz-design-video-row {
+    border-bottom: 1px solid var(--nsz-design-video-light-grey);
+    padding: var(--nsz-design-video-container-padding);
+}
+
+.nsz-design-video-row:last-of-type {
+    border-bottom: none;
+}
+
+.nsz-design-video-footer {
+    padding: var(--nsz-design-video-container-padding);
+    padding-top: 0;
+}
+
+.nsz-design-video-footer .submit {
+    padding: 0;
+    margin: 0;
 }

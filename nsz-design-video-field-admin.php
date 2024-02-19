@@ -1,113 +1,98 @@
 <?php
 
-function nsz_design_video_field_settings_page()
-{
-
-    //must check that the user has the required capability
-    if (!current_user_can('manage_options'))
-    {
-        wp_die( __('You do not have sufficient permissions to access this page.') );
+function nsz_design_video_field_settings_page() {
+    // Must check that the user has the required capability
+    if (!current_user_can('manage_options')) {
+        wp_die(__('You do not have sufficient permissions to access this page.'));
     }
 
-    //variables for the field and option names
-    $nsz_cfstream_api_hidden = 'nsz_cfstream_api_hidden';
+    // Define variables for the field and option names
     $nsz_cfstream_api_field = 'nsz_cfstream_api_key';
-    $nsz_cfstream_api_value = filter_var(($_POST[$nsz_cfstream_api_field] ?? null), FILTER_SANITIZE_STRING);
-    $nsz_cfstream_account_id_hidden = 'nsz_cfstream_account_id_hidden';
     $nsz_cfstream_account_id_field = 'nsz_cfstream_account_id';
-    $nsz_cfstream_account_id_value = filter_var(($_POST[$nsz_cfstream_account_id_field] ?? null), FILTER_SANITIZE_STRING);
-    $nsz_cfstream_account_email_hidden = 'nsz_cfstream_account_email_hidden';
     $nsz_cfstream_account_email_field = 'nsz_cfstream_account_email';
-    $nsz_cfstream_account_email_value = filter_var(($_POST[$nsz_cfstream_account_email_field] ?? null), FILTER_SANITIZE_EMAIL);
 
-    //save api key
-    if (isset($_POST[$nsz_cfstream_api_hidden]) && $_POST[$nsz_cfstream_api_hidden] == 'Y') {
-        if ($nsz_cfstream_api_value) {
-            update_option($nsz_cfstream_api_field, $nsz_cfstream_api_value);
-            echo $nsz_cfstream_api_value;
-        }
+    // Check if the form has been submitted
+    if (isset($_POST['submitted']) && $_POST['submitted'] == 'Y') {
+        // Sanitize and save the API Key
+        $nsz_cfstream_api_value = filter_var(($_POST[$nsz_cfstream_api_field] ?? ''), FILTER_SANITIZE_STRING);
+        update_option($nsz_cfstream_api_field, $nsz_cfstream_api_value);
+
+        // Sanitize and save the Account ID
+        $nsz_cfstream_account_id_value = filter_var(($_POST[$nsz_cfstream_account_id_field] ?? ''), FILTER_SANITIZE_STRING);
+        update_option($nsz_cfstream_account_id_field, $nsz_cfstream_account_id_value);
+
+        // Sanitize and save the Account Email
+        $nsz_cfstream_account_email_value = filter_var(($_POST[$nsz_cfstream_account_email_field] ?? ''), FILTER_SANITIZE_EMAIL);
+        update_option($nsz_cfstream_account_email_field, $nsz_cfstream_account_email_value);
+
+        // Display a success message
         ?>
-        <div class="updated"><p><strong>API Token Updated</strong></p></div>
+        <div class="updated"><p><strong>Settings Updated</strong></p></div>
         <?php
     }
 
-    //save account id
-    if (isset($_POST[$nsz_cfstream_account_id_hidden]) && $_POST[$nsz_cfstream_account_id_hidden] == 'Y') {
-        if ($nsz_cfstream_account_id_value) {
-            update_option($nsz_cfstream_account_id_field, $nsz_cfstream_account_id_value);
-        }
-        ?>
-        <div class="updated"><p><strong>Account ID Updated</strong></p></div>
-        <?php
-    }
+    // Retrieve the current values to display in the form
+    $nsz_cfstream_api_value = get_option($nsz_cfstream_api_field, '');
+    $nsz_cfstream_account_id_value = get_option($nsz_cfstream_account_id_field, '');
+    $nsz_cfstream_account_email_value = get_option($nsz_cfstream_account_email_field, '');
 
-    //save account email
-    if (isset($_POST[$nsz_cfstream_account_email_hidden]) && $_POST[$nsz_cfstream_account_email_hidden] == 'Y') {
-        if ($nsz_cfstream_account_email_value) {
-            update_option($nsz_cfstream_account_email_field, $nsz_cfstream_account_email_value);
-        }
-        ?>
-        <div class="updated"><p><strong>Account Email Updated</strong></p></div>
-        <?php
-    }
-
-    $nsz_cfstream_api_value = get_option($nsz_cfstream_api_field) ?: $nsz_cfstream_api_value;
-    $nsz_cfstream_account_id_value = get_option($nsz_cfstream_account_id_field) ?: $nsz_cfstream_account_id_value;
-    $nsz_cfstream_account_email_value = get_option($nsz_cfstream_account_email_field) ?: $nsz_cfstream_account_email_value;
-
+    // Assets
+    $wordmark_url = plugins_url( 'assets/wordmark.svg', __FILE__ );
 
     ?>
-    <div class="wrap">
-        <h1>970 Design Video Field Settings</h1>
+    <section class="nsz-design-video-admin">
 
-        <form name="form-nsz-cloudflare-stream-api-token" method="post" action="">
-            <h2>Cloudflare API Token</h2>
-            <p><label for="<?php echo $nsz_cfstream_api_field; ?>">API Token: <span class="required">*</span> </label> <br />
-                <input required type="text" id="<?php echo $nsz_cfstream_api_field; ?>" name="<?php echo $nsz_cfstream_api_field; ?>" value="<?php echo $nsz_cfstream_api_value ?? ''; ?>" size="35">
-            </p>
-            <input type="hidden" name="<?php echo $nsz_cfstream_api_hidden; ?>" value="Y">
-            <p class="submit">
-                <input type="submit" name="Submit" class="button-primary" value="Update API Token" />
-            </p>
+        <header class="nsz-design-video-header">
+            <div class="nsz-design-video-container">
+                <h1 class="nsz-design-video-header-title">
+                    <img src="<?php echo esc_url( $wordmark_url ); ?>" alt="970 Design Wordmark" class="nsz-design-video-wordmark"> Video Field Settings
+                </h1>
+            </div>
+        </header>
 
-            <p class="small"><a href="https://developers.cloudflare.com/fundamentals/api/get-started/create-token/" target="_blank">How to create an API Token</a></p>
-        </form>
+        <section class="nsz-design-video-container">
+            <div class="nsz-design-video-card">
+                <form method="post" action="">
+                    <h2 class="nsz-design-video-title">Cloudflare Settings</h2>
 
-        <hr />
-
-        <form name="form-nsz-cloudflare-stream-account-id" method="post" action="">
-            <h2>Cloudflare Account ID</h2>
-            <p><label for="<?php echo $nsz_cfstream_account_id_field; ?>">Account ID: <span class="required">*</span> </label> <br />
-                <input required type="text" id="<?php echo $nsz_cfstream_account_id_field; ?>" name="<?php echo $nsz_cfstream_account_id_field; ?>" value="<?php echo $nsz_cfstream_account_id_value ?? ''; ?>" size="35">
-            </p>
-            <input type="hidden" name="<?php echo $nsz_cfstream_account_id_hidden; ?>" value="Y">
-            <p class="submit">
-                <input type="submit" name="Submit" class="button-primary" value="Update Account ID" />
-            </p>
-            <p class="small">
-                <a href="https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/ " target="_blank">How to find your Account ID</a>
-            </p>
-        </form>
-
-        <hr />
-
-        <form name="form-nsz-cloudflare-stream-account-email" method="post" action="">
-            <h2>Cloudflare Account Email</h2>
-            <p><label for="<?php echo $nsz_cfstream_account_email_field; ?>">Account Email:  <span class="required">*</span> </label> <br />
-                <input required type="email" id="<?php echo $nsz_cfstream_account_email_field; ?>" name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo $nsz_cfstream_account_email_value ?? ''; ?>" size="35">
-            </p>
-            <input type="hidden" name="<?php echo $nsz_cfstream_account_email_hidden; ?>" value="Y">
-            <p class="submit">
-                <input type="submit" name="Submit" class="button-primary" value="Update Account Email" />
-            </p>
-        </form>
-    </div>
-
+                    <div class="nsz-design-video-row">
+                        <div>
+                            <label for="<?php echo $nsz_cfstream_api_field; ?>">API Token: <span class="required">*</span></label>
+                            <input required type="text" id="<?php echo $nsz_cfstream_api_field; ?>" name="<?php echo $nsz_cfstream_api_field; ?>" value="<?php echo esc_attr($nsz_cfstream_api_value); ?>" size="35">
+                            <br><br>
+                            <span class="small"><a href="https://developers.cloudflare.com/fundamentals/api/get-started/create-token/" target="_blank">How to create an API Token</a></span>
+                        </div>
+                    </div>
+                    <div class="nsz-design-video-row">
+                        <div>
+                            <label for="<?php echo $nsz_cfstream_account_id_field; ?>">Account ID: <span class="required">*</span></label>
+                            <input required type="text" id="<?php echo $nsz_cfstream_account_id_field; ?>" name="<?php echo $nsz_cfstream_account_id_field; ?>" value="<?php echo esc_attr($nsz_cfstream_account_id_value); ?>" size="35">
+                            <br><br>
+                            <span class="small">
+                                <a href="https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/ " target="_blank">How to find your Account ID</a>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="nsz-design-video-row">
+                        <div>
+                            <label for="<?php echo $nsz_cfstream_account_email_field; ?>">Account Email: <span class="required">*</span></label>
+                            <input required type="email" id="<?php echo $nsz_cfstream_account_email_field; ?>" name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo esc_attr($nsz_cfstream_account_email_value); ?>" size="35">
+                        </div>
+                    </div>
+                    <footer class="nsz-design-video-footer">
+                        <input type="hidden" name="submitted" value="Y">
+                        <div class="submit">
+                            <input type="submit" name="Submit" class="button-primary" value="Save Changes" />
+                        </div>
+                    </footer>
+                </form>
+            </div>
+        </section>
+    </section>
     <?php
 }
 
-function nsz_design_video_field_menu_item()
-{
+function nsz_design_video_field_menu_item() {
     add_options_page("Cloudflare Stream ACF Field Settings", "Cloudflare Stream ACF Field Settings", "manage_options", "nsz_design_video_field_settings", "nsz_design_video_field_settings_page");
 }
 
