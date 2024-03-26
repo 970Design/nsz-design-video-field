@@ -18,5 +18,5 @@ function nsz_include_acf_field_cloudflare_stream() {
 
 	require_once __DIR__ . '/class-nsz-acf-field-cloudflare-stream.php';
 
-	acf_register_field_type( 'nsz_acf_field_cloudflare_stream' );
+	acf_register_field_type( 'nsz_design_video_field_acf_field_cloudflare_stream' );
 }

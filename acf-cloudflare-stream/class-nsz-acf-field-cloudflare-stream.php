@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * nsz_acf_field_cloudflare_stream class.
  */
-class nsz_acf_field_cloudflare_stream extends \acf_field {
+class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 	/**
 	 * Controls field type visibilty in REST requests.
 	 *

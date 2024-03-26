@@ -10,7 +10,7 @@ Requires at least: 6.4
 
 Tested up to: 6.4
 
-Stable tag: 6.4
+Stable tag: 1.5
 
 Requires PHP: 7.4
 
@@ -31,9 +31,11 @@ This section describes how to install the plugin and get it working.
 4. Use the new Cloudflare Stream field like any other ACF field
 == Frequently Asked Questions ==
 = Does this plugin require Advanced Custom Fields? =
-Yes!
+Yes!  Find out more about ACF here: https://www.advancedcustomfields.com/  You can find the ACF privacy policy here: https://www.advancedcustomfields.com/blog/acf-and-gdpr-what-you-need-to-know/
 = Does this plugin require a subscription to Cloudflare Stream? =
-Yes!
+Yes!  Find out more about Cloudflare Stream here: https://www.cloudflare.com/products/cloudflare-stream/  You can find the Cloudflare privacy policy here: https://www.cloudflare.com/privacypolicy/
+= Does this plugin save my Cloudflare credentials? =
+Your Cloudflare credentials are only saved locally on your website.  None of this information is transferred or shared with any service.
 = Does this plugin display the uploaded video for me? =
 No, you will need to use a video library of your choosing to display the video.  This plugin will upload your video to your Cloudflare account and provide you with HLS and Dash manifests for streaming, a thumbnail, and preview video URL. Please review the Cloudflare documentation for implementation examples: https://developers.cloudflare.com/stream/
 == Screenshots ==
@@ -46,3 +48,5 @@ No, you will need to use a video library of your choosing to display the video. 
 == Upgrade Notice ==
 = 1.0 =
 First stable version.
+= 1.5 =
+Stable version for WordPress publication.

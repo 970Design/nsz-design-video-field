@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 function nsz_design_video_field_settings_page() {
     // Must check that the user has the required capability
     if (!current_user_can('manage_options')) {
@@ -57,16 +59,16 @@ function nsz_design_video_field_settings_page() {
 
                     <div class="nsz-design-video-row">
                         <div>
-                            <label for="<?php echo $nsz_cfstream_api_field; ?>">API Token: <span class="required">*</span></label>
-                            <input required type="text" id="<?php echo $nsz_cfstream_api_field; ?>" name="<?php echo $nsz_cfstream_api_field; ?>" value="<?php echo esc_attr($nsz_cfstream_api_value); ?>" size="35">
+                            <label for="<?php echo esc_attr($nsz_cfstream_api_field); ?>">API Token: <span class="required">*</span></label>
+                            <input required type="text" id="<?php echo esc_attr($nsz_cfstream_api_field); ?>" name="<?php echo esc_attr($nsz_cfstream_api_field); ?>" value="<?php echo esc_html($nsz_cfstream_api_value); ?>" size="35">
                             <br><br>
                             <span class="small"><a href="https://developers.cloudflare.com/fundamentals/api/get-started/create-token/" target="_blank">How to create an API Token</a></span>
                         </div>
                     </div>
                     <div class="nsz-design-video-row">
                         <div>
-                            <label for="<?php echo $nsz_cfstream_account_id_field; ?>">Account ID: <span class="required">*</span></label>
-                            <input required type="text" id="<?php echo $nsz_cfstream_account_id_field; ?>" name="<?php echo $nsz_cfstream_account_id_field; ?>" value="<?php echo esc_attr($nsz_cfstream_account_id_value); ?>" size="35">
+                            <label for="<?php echo esc_attr($nsz_cfstream_account_id_field); ?>">Account ID: <span class="required">*</span></label>
+                            <input required type="text" id="<?php echo esc_attr($nsz_cfstream_account_id_field); ?>" name="<?php echo esc_attr($nsz_cfstream_account_id_field); ?>" value="<?php echo esc_html($nsz_cfstream_account_id_value); ?>" size="35">
                             <br><br>
                             <span class="small">
                                 <a href="https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/ " target="_blank">How to find your Account ID</a>
@@ -75,8 +77,8 @@ function nsz_design_video_field_settings_page() {
                     </div>
                     <div class="nsz-design-video-row">
                         <div>
-                            <label for="<?php echo $nsz_cfstream_account_email_field; ?>">Account Email: <span class="required">*</span></label>
-                            <input required type="email" id="<?php echo $nsz_cfstream_account_email_field; ?>" name="<?php echo $nsz_cfstream_account_email_field; ?>" value="<?php echo esc_attr($nsz_cfstream_account_email_value); ?>" size="35">
+                            <label for="<?php echo esc_attr($nsz_cfstream_account_email_field); ?>">Account Email: <span class="required">*</span></label>
+                            <input required type="email" id="<?php echo esc_attr($nsz_cfstream_account_email_field); ?>" name="<?php echo esc_attr($nsz_cfstream_account_email_field); ?>" value="<?php echo esc_html($nsz_cfstream_account_email_value); ?>" size="35">
                         </div>
                     </div>
                     <footer class="nsz-design-video-footer">

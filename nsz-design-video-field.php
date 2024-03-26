@@ -5,12 +5,12 @@
  *
  * Plugin Name: 970 Design Video Field
  * Description: An Advanced Custom Fields (ACF) Field for Cloudflare Stream.
- * Version:     1.3
+ * Version:     1.5
  * Author:      970 Design
  * Author URI:  https://970design.com/
  * License:     GPLv2 or later
  * License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * Text Domain: nsz-events
+ * Text Domain: nsz-video-field
  *
  * This program is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License version 2, as published by the Free Software Foundation. You may NOT assume
@@ -50,69 +50,3 @@ function nsz_design_video_field_settings_link( $links ) {
     return $links;
 }
 
-//create an ajax route to acquire a cloudflare upload url without exposing API
-//currently doesn't work; will keep returning new URLs to upload when called in recursion by tus, so it can never start
-add_action('rest_api_init', 'nsz_cloudflare_stream_url_route');
-function nsz_cloudflare_stream_url_route()
-{
-    register_rest_route('nsz-cloudflare-stream', 'url', array(
-        'methods' => 'POST',
-        'callback' => 'nsz_cloudflare_stream_url_ajax',
-        'permission_callback' => '__return_true'
-    ));
-}
-function nsz_cloudflare_stream_url_ajax()
-{
-    $result = false;
-    $headers = array();
-    $api_token = get_option('nsz_cfstream_api_key');
-    $account_id = get_option('nsz_cfstream_account_id');
-    $account_email = get_option('nsz_cfstream_account_email');
-    $size = filter_var(($_GET['size'] ?? 0), FILTER_VALIDATE_INT);
-    $url = 'https://api.cloudflare.com/client/v4/accounts/'.$account_id.'/stream?direct_user=true';
-
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_POST, true);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-    //parse headers into array to get location for redirect
-    curl_setopt($curl, CURLOPT_HEADERFUNCTION,
-        function ($curl, $header) use (&$headers) {
-            $len = strlen($header);
-            $header = explode(':', $header, 2);
-            if (count($header) < 2) // ignore invalid headers
-                return $len;
-
-            $headers[strtolower(trim($header[0]))][] = trim($header[1]);
-
-            return $len;
-        }
-    );
-    curl_setopt($curl, CURLOPT_HEADER, 1);
-
-    //set cloudflare required headers for api call
-    $headers = array(
-        "X-Auth-Email: ".$account_email,
-        "X-Auth-Key: ".$api_token,
-        "Tus-Resumable: 1.0.0",
-        "Upload-Length: ".$size,
-    );
-    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-
-    $data = '{"maxDurationSeconds": 10}';
-
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-
-    $result = curl_exec($curl);
-    curl_close($curl);
-
-    header('Access-Control-Expose-Headers: *');
-    header('Access-Control-Allow-Headers: *');
-    header('Access-Control-Allow-Origin: *');
-    header("X-Auth-Email: ".$account_email);
-    header("X-Auth-Key: ".$api_token);
-    header('Location: '.$headers['location'][0] ?? null);
-
-    exit();
-}
