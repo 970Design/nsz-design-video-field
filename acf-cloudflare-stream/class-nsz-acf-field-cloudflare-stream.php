@@ -91,8 +91,8 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 			'error'	=> __( 'Error! Please enter a higher value', 'cloudflare-stream' ),
 		);
 
-				$protocol = is_ssl() ? 'https://' : 'http://';
-        $domainName = $_SERVER['HTTP_HOST'];
+		$protocol = is_ssl() ? 'https://' : 'http://';
+        $domainName = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
 		$this->env = array(
 			'url'     => $protocol.$domainName.'/app/plugins/nsz-design-video-field/acf-cloudflare-stream/', // URL to the acf-cloudflare-stream directory.
