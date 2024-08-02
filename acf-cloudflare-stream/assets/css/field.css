@@ -1,7 +1,7 @@
 /**
  * Included when fields of this type are rendered for editing by publishers.
  */
- :root {
+:root {
     --nsz-design-video-container-width: 45rem;
     --nsz-design-video-container-padding: 1.5rem;
     --nsz-design-video-border-radius: 0.6rem;
@@ -10,7 +10,7 @@
     --nsz-design-video-red: #cc0a0a;
     --nsz-design-video-green: #2fcc0a;
     --nsz-design-video-light-grey: #f6f7f7;
- }
+}
 
 .acf-field-cloudflare-stream .cloudflare-stream-success {
     font-weight: bold;
@@ -66,6 +66,14 @@
 
 .acf-field-cloudflare-stream .cloudflare-video-details.active {
     display: block;
+}
+
+.acf-field-cloudflare-stream .cloudflare-video-details .cloudflare-video-details-item-holder {
+    display: flex;
+}
+
+.acf-field-cloudflare-stream .cloudflare-video-details .wrap-item {
+    margin-right: 1rem;
 }
 
 .settings_page_nsz_design_video_field_settings #wpcontent {
