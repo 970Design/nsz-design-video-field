@@ -258,7 +258,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
      * @return void
      */
     public function input_admin_enqueue_scripts() {
-        $url     = trailingslashit( $this->env['url'] );
+        $url     = plugin_dir_url( __FILE__ );
         $version = $this->env['version'];
 
         wp_register_script(

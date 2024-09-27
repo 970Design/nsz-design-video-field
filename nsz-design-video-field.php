@@ -5,7 +5,7 @@
  *
  * Plugin Name: 970 Design Video Field
  * Description: An Advanced Custom Fields (ACF) Field for Cloudflare Stream.
- * Version:     1.7
+ * Version:     1.8
  * Author:      970 Design
  * Author URI:  https://970design.com/
  * License:     GPLv2 or later
