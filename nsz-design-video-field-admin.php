@@ -16,11 +16,11 @@ function nsz_design_video_field_settings_page() {
     // Check if the form has been submitted
     if (isset($_POST['submitted']) && $_POST['submitted'] == 'Y') {
         // Sanitize and save the API Key
-        $nsz_cfstream_api_value = filter_var(($_POST[$nsz_cfstream_api_field] ?? ''), FILTER_SANITIZE_STRING);
+        $nsz_cfstream_api_value = esc_attr($_POST[$nsz_cfstream_api_field] ?? '');
         update_option($nsz_cfstream_api_field, $nsz_cfstream_api_value);
 
         // Sanitize and save the Account ID
-        $nsz_cfstream_account_id_value = filter_var(($_POST[$nsz_cfstream_account_id_field] ?? ''), FILTER_SANITIZE_STRING);
+        $nsz_cfstream_account_id_value = esc_attr($_POST[$nsz_cfstream_account_id_field] ?? '');
         update_option($nsz_cfstream_account_id_field, $nsz_cfstream_account_id_value);
 
         // Sanitize and save the Account Email
