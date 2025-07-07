@@ -35,6 +35,7 @@
 
 .acf-field-cloudflare-stream .wrap-upload-field {
     display: none;
+    margin-top: 1rem;
 }
 
 .acf-field-cloudflare-stream .wrap-upload-field.active {
@@ -167,3 +168,40 @@
     padding: 0;
     margin: 0;
 }
+
+.nsz-cloudflare-stream-modal {
+    z-index: 100;
+    width: 60vw;
+    top: -150px;
+}
+
+.nsz-cloudflare-stream-modal form {
+    margin-top: 1rem;
+}
+
+.nsz-cloudflare-stream-modal-listing {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.nsz-cloudflare-stream-modal-listing ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nsz-cloudflare-stream-modal-listing li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    cursor: pointer;
+}
+
+.nsz-cloudflare-stream-modal-listing img {
+    width: 150px;
+    height: auto;
+    margin-right: 1rem;
+}
+
+
+

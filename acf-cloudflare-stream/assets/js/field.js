@@ -1,11 +1,55 @@
 /**
  * Included when cloudflare_stream fields are rendered for editing by publishers.
  */
- ( function( $ ) {
+( function( $ ) {
 	function initialize_field( $field ) {
 		/**
 		 * $field is a jQuery object wrapping field elements in the editor.
 		 */
+
+		$('.nsz-cloudflare-stream-browse-modal').on('click', function (e) {
+			e.preventDefault();
+
+			let cfs_wrap = $(this).closest('.cloudflare-stream-wrapper');
+
+			$.ajax({
+				type: "GET",
+				url: 'https://api.cloudflare.com/client/v4/accounts/'+nsz_cloudflare_stream.account_id+'/stream/',
+				headers: {
+					"Authorization": "Bearer "+nsz_cloudflare_stream.api_token,
+					"X-Auth-Email": nsz_cloudflare_stream.account_email,
+					"X-Auth-Key": nsz_cloudflare_stream.api_token
+				},
+				success: function (data) {
+
+					if (data.result.length) {
+						let video_list = cfs_wrap.find('.nsz-cloudflare-stream-modal-listing');
+						video_list.html('');
+						data.result.forEach(function (video) {
+							let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="'+video.uid+'"><img src="'+video.thumbnail+'" alt="'+video.meta.name+'"><div>File: '+video.meta.name+' <br />Duration: '+video.duration+'sec <br />Uploaded: '+video.uploaded+'</div></li>');
+							list_item.on('click', function () {
+								cfs_wrap.find('.data-hls').val(video.playback.hls);
+								cfs_wrap.find('.data-dash').val(video.playback.dash);
+								cfs_wrap.find('.data-thumbnail').val(video.thumbnail);
+								cfs_wrap.find('.data-preview').val(video.preview);
+								cfs_wrap.find('.cloudflare-video-details').show();
+								cfs_wrap.find('.cloudflare-video-thumbnail-preview').attr('src', video.thumbnail);
+								cfs_wrap.find('.wrap-upload-field').hide();
+								cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', false);
+							});
+							video_list.append(list_item);
+						});
+					}
+
+					cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', true);
+				},
+				error: function (data) {
+					console.log(data);
+					error_area.html('Error fetching existing videos from Cloudflare.').show();
+				}
+			});
+		});
+
 
 		$('.nsz-cloudflare-stream-clear-video').on('click', function (e) {
 			let cfs_wrap = $(this).closest('.cloudflare-stream-wrapper');

@@ -180,6 +180,19 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
             ?>
 
             <div class="cloudflare-stream-wrapper">
+
+                <div class="wrap-browse-field">
+                    <button class="nsz-cloudflare-stream-browse-modal button-primary">Browse Existing Videos</button>
+                    <dialog class="nsz-cloudflare-stream-modal">
+                        <div class="nsz-cloudflare-stream-modal-listing">
+
+                        </div>
+                        <form method="dialog">
+                            <button class="button-primary">Close</button>
+                        </form>
+                    </dialog>
+                </div>
+
                 <div class="wrap-upload-field <?php if (!$is_video_uploaded) : ?> active <?php endif; ?>">
                     <div class="acf-label">
                         <label for="nsz-cloudflare-stream-file">Choose a video to upload:</label>
