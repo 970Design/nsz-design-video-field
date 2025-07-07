@@ -171,8 +171,11 @@
 
 .nsz-cloudflare-stream-modal {
     z-index: 100;
-    width: 60vw;
-    top: -150px;
+    width: 50vw;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .nsz-cloudflare-stream-modal form {
