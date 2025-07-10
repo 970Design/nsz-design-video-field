@@ -192,7 +192,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 
                         </div>
                         <form method="dialog">
-                            <button class="button-primary">Close</button>
+                            <button class="nsz-cloudflare-stream-close-modal button-primary">Close</button>
                         </form>
                     </dialog>
                 </div>

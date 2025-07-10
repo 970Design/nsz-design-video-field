@@ -7,6 +7,12 @@
 		 * $field is a jQuery object wrapping field elements in the editor.
 		 */
 
+		$('.nsz-cloudflare-stream-close-modal').on('click', function (e) {
+			e.preventDefault();
+			let cfs_wrap = $(this).closest('.cloudflare-stream-wrapper');
+			cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', false);
+		});
+
 		$('.nsz-cloudflare-stream-browse-modal').on('click', function (e) {
 			e.preventDefault();
 
