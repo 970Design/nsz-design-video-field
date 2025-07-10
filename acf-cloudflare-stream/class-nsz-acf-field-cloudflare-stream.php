@@ -94,9 +94,13 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         $protocol = is_ssl() ? 'https://' : 'http://';
         $domainName = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
+        $plugin_dir = WP_PLUGIN_DIR . '/nsz-design-video-field/nsz-design-video-field.php';
+        $plugin_data = get_plugin_data($plugin_dir);
+        $plugin_version = $plugin_data['Version'] ?? '1.0';
+
         $this->env = array(
             'url'     => $protocol.$domainName.'/app/plugins/nsz-design-video-field/acf-cloudflare-stream/', // URL to the acf-cloudflare-stream directory.
-            'version' => '1.0', // Replace this with your theme or plugin version constant.
+            'version' => $plugin_version, // Replace this with your theme or plugin version constant.
         );
 
         /**
