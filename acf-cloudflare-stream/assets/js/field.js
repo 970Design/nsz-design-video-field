@@ -38,6 +38,8 @@
 								cfs_wrap.find('.data-dash').val(video.playback.dash);
 								cfs_wrap.find('.data-thumbnail').val(video.thumbnail);
 								cfs_wrap.find('.data-preview').val(video.preview);
+								cfs_wrap.find('.data-filename').val(video.meta.name);
+								cfs_wrap.find('.data-filename-display').html(video.meta.name);
 								cfs_wrap.find('.cloudflare-video-details').show();
 								cfs_wrap.find('.cloudflare-video-thumbnail-preview').attr('src', video.thumbnail);
 								cfs_wrap.find('.wrap-upload-field').hide();
@@ -63,6 +65,8 @@
 			cfs_wrap.find('.data-dash').val('');
 			cfs_wrap.find('.data-thumbnail').val('');
 			cfs_wrap.find('.data-preview').val('');
+			cfs_wrap.find('.data-filename').val('');
+			cfs_wrap.find('.data-filename-display').html('');
 			cfs_wrap.find('.cloudflare-video-details').hide();
 			cfs_wrap.find('.cloudflare-video-thumbnail-preview').attr('src', '');
 			cfs_wrap.find('.wrap-upload-field').show();
@@ -78,8 +82,9 @@
 			let dash_input = cfs_wrap.find('.data-dash');
 			let thumbnail_input = cfs_wrap.find('.data-thumbnail');
 			let preview_input = cfs_wrap.find('.data-preview');
+			let filename_input = cfs_wrap.find('.data-filename');
 			let video_details = cfs_wrap.find('.cloudflare-video-details');
-			let filename = cfs_wrap.find('.data-filename');
+			let filename_display = cfs_wrap.find('.data-filename-display');
 			let error_area = cfs_wrap.find('.cloudflare-stream-error');
 			let success_area = cfs_wrap.find('.cloudflare-stream-success');
 			let progress_wrap = cfs_wrap.find('.cloudflare-stream-progress-wrap');
@@ -142,8 +147,9 @@
 								dash_input.val(data.result.playback.dash);
 								thumbnail_input.val(data.result.thumbnail);
 								preview_input.val(data.result.preview);
+								filename_input.val(data.result.meta.name);
+								filename_display.html(data.result.meta.name);
 								video_details.show();
-								filename.html(data.result.meta.name);
 								video_thumbnail.attr('src', data.result.thumbnail)
 
 								success_area.html('Upload complete!').show();

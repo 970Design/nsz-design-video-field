@@ -223,11 +223,13 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 
                 <div class="cloudflare-video-details <?php if ($is_video_uploaded) : ?> active <?php endif; ?>">
 
-                    <h4><span class="data-filename"><?php echo $filename; ?></span> Details:</h4>
+                    <h4><span class="data-filename-display"><?php echo $filename; ?></span> Details:</h4>
 
                     <div class="wrap-item wrap-thumbnail">
                         <img class="cloudflare-video-thumbnail-preview" src="<?php echo $thumbnail ?>" />
                     </div>
+
+                    <input class="data-filename" type="hidden" name="<?php echo esc_attr($field['name']) ?>[filename]" value="<?php echo $filename ?>" />
 
                     <div class="cloudflare-video-details-item-holder">
                         <div class="wrap-item wrap-hls">
