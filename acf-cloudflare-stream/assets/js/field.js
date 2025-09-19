@@ -78,16 +78,16 @@
 
 							for (let i = startIndex; i < endIndex; i++) {
 								const video = data.result[i];
-								let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div>File: ' + video.meta.name + ' <br />Duration: ' + video.duration + 'sec <br />Uploaded: ' + video.uploaded + '<br /><button class="button-primary nsz-select-video">Select</button><button class="button-secondary nsz-delete-video">Delete</button></div></li>');
+								let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div>File: ' + video.meta.name + ' <br />Duration: ' + video.duration + 'sec <br />Uploaded: ' + video.uploaded + '<br /><button style="margin-right: 1.25rem" class="button-primary nsz-select-video">Select</button><button class="button-secondary nsz-delete-video">Delete</button></div></li>');
 
 								// Add the delete button click handler
 								list_item.find('.nsz-delete-video').on('click', function (e) {
 									e.preventDefault();
-									e.stopPropagation(); // Prevent triggering the parent li click event
 									deleteCloudflareVideo(video.uid, list_item, cfs_wrap);
 								});
 
-								list_item.on('click', function () {
+								list_item.find('.nsz-select-video').on('click', function (e) {
+									e.preventDefault();
 									cfs_wrap.find('.data-hls').val(video.playback.hls);
 									cfs_wrap.find('.data-dash').val(video.playback.dash);
 									cfs_wrap.find('.data-thumbnail').val(video.thumbnail);
