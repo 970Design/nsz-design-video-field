@@ -197,6 +197,9 @@
     display: flex;
     align-items: center;
     margin-bottom: 1rem;
+}
+
+.nsz-cloudflare-stream-modal-listing button {
     cursor: pointer;
 }
 
@@ -206,5 +209,13 @@
     margin-right: 1rem;
 }
 
+.nsz-cloudflare-stream-pagination-controls {
+    margin-top: 1rem;
+}
+
+.nsz-cloudflare-stream-pagination-controls .page-button {
+    margin-right: .2rem !important;
+    margin-bottom: .2rem !important;
+}
 
 

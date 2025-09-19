@@ -1,8 +1,36 @@
 /**
  * Included when cloudflare_stream fields are rendered for editing by publishers.
  */
-( function( $ ) {
-	function initialize_field( $field ) {
+(function ($) {
+	function initialize_field($field) {
+
+		// Function to delete video from Cloudflare Stream
+		function deleteCloudflareVideo(videoId, listItem, cfs_wrap) {
+			if (confirm('Are you sure you want to delete this video?')) {
+				$.ajax({
+					type: "DELETE",
+					url: 'https://api.cloudflare.com/client/v4/accounts/' + nsz_cloudflare_stream.account_id + '/stream/' + videoId,
+					headers: {
+						"Authorization": "Bearer " + nsz_cloudflare_stream.api_token,
+						"X-Auth-Email": nsz_cloudflare_stream.account_email,
+						"X-Auth-Key": nsz_cloudflare_stream.api_token
+					},
+					success: function (response) {
+						if (response.success) {
+							listItem.remove();
+							// Show success message
+							cfs_wrap.find('.cloudflare-stream-success').html('Video deleted successfully').show().delay(3000).fadeOut();
+						}
+					},
+					error: function (error) {
+						console.error(error);
+						cfs_wrap.find('.cloudflare-stream-error').html('Error deleting video').show();
+					}
+				});
+				listItem.remove();
+			}
+		}
+
 		/**
 		 * $field is a jQuery object wrapping field elements in the editor.
 		 */
@@ -20,9 +48,9 @@
 
 			$.ajax({
 				type: "GET",
-				url: 'https://api.cloudflare.com/client/v4/accounts/'+nsz_cloudflare_stream.account_id+'/stream/',
+				url: 'https://api.cloudflare.com/client/v4/accounts/' + nsz_cloudflare_stream.account_id + '/stream/',
 				headers: {
-					"Authorization": "Bearer "+nsz_cloudflare_stream.api_token,
+					"Authorization": "Bearer " + nsz_cloudflare_stream.api_token,
 					"X-Auth-Email": nsz_cloudflare_stream.account_email,
 					"X-Auth-Key": nsz_cloudflare_stream.api_token
 				},
@@ -31,22 +59,69 @@
 					if (data.result.length) {
 						let video_list = cfs_wrap.find('.nsz-cloudflare-stream-modal-listing');
 						video_list.html('');
-						data.result.forEach(function (video) {
-							let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="'+video.uid+'"><img src="'+video.thumbnail+'" alt="'+video.meta.name+'"><div>File: '+video.meta.name+' <br />Duration: '+video.duration+'sec <br />Uploaded: '+video.uploaded+'</div></li>');
-							list_item.on('click', function () {
-								cfs_wrap.find('.data-hls').val(video.playback.hls);
-								cfs_wrap.find('.data-dash').val(video.playback.dash);
-								cfs_wrap.find('.data-thumbnail').val(video.thumbnail);
-								cfs_wrap.find('.data-preview').val(video.preview);
-								cfs_wrap.find('.data-filename').val(video.meta.name);
-								cfs_wrap.find('.data-filename-display').html(video.meta.name);
-								cfs_wrap.find('.cloudflare-video-details').show();
-								cfs_wrap.find('.cloudflare-video-thumbnail-preview').attr('src', video.thumbnail);
-								cfs_wrap.find('.wrap-upload-field').hide();
-								cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', false);
+
+						// Remove any existing pagination controls first
+						cfs_wrap.find('.nsz-cloudflare-stream-pagination-controls').remove();
+
+						// Create pagination controls
+						let paginationContainer = $('<div class="nsz-cloudflare-stream-pagination-controls"></div>');
+						let currentPage = 1;
+						const itemsPerPage = 50;
+						const totalPages = Math.ceil(data.result.length / itemsPerPage);
+
+
+						// Function to display videos for current page
+						function displayVideosForPage(pageNum) {
+							video_list.html('');
+							const startIndex = (pageNum - 1) * itemsPerPage;
+							const endIndex = Math.min(startIndex + itemsPerPage, data.result.length);
+
+							for (let i = startIndex; i < endIndex; i++) {
+								const video = data.result[i];
+								let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div>File: ' + video.meta.name + ' <br />Duration: ' + video.duration + 'sec <br />Uploaded: ' + video.uploaded + '<br /><button class="button-primary nsz-select-video">Select</button><button class="button-secondary nsz-delete-video">Delete</button></div></li>');
+
+								// Add the delete button click handler
+								list_item.find('.nsz-delete-video').on('click', function (e) {
+									e.preventDefault();
+									e.stopPropagation(); // Prevent triggering the parent li click event
+									deleteCloudflareVideo(video.uid, list_item, cfs_wrap);
+								});
+
+								list_item.on('click', function () {
+									cfs_wrap.find('.data-hls').val(video.playback.hls);
+									cfs_wrap.find('.data-dash').val(video.playback.dash);
+									cfs_wrap.find('.data-thumbnail').val(video.thumbnail);
+									cfs_wrap.find('.data-preview').val(video.preview);
+									cfs_wrap.find('.data-filename').val(video.meta.name);
+									cfs_wrap.find('.data-filename-display').html(video.meta.name);
+									cfs_wrap.find('.cloudflare-video-details').show();
+									cfs_wrap.find('.cloudflare-video-thumbnail-preview').attr('src', video.thumbnail);
+									cfs_wrap.find('.wrap-upload-field').hide();
+									cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', false);
+								});
+
+								video_list.append(list_item);
+							}
+						}
+
+						// Create pagination buttons
+						for (let i = 1; i <= totalPages; i++) {
+							const pageButton = $(`<button class="button-secondary page-button ${i === currentPage ? 'active' : ''}">${i}</button>`);
+							pageButton.on('click', function (e) {
+
+								e.preventDefault();
+								currentPage = i;
+								displayVideosForPage(currentPage);
+								paginationContainer.find('.page-button').removeClass('active');
+								$(this).addClass('active');
 							});
-							video_list.append(list_item);
-						});
+							paginationContainer.append(pageButton);
+						}
+
+						// Display first page and add pagination controls
+						displayVideosForPage(currentPage);
+						video_list.after(paginationContainer);
+
 					}
 
 					cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', true);
@@ -101,7 +176,7 @@
 			}
 
 			let upload = new tus.Upload(file, {
-				endpoint: 'https://api.cloudflare.com/client/v4/accounts/'+nsz_cloudflare_stream.account_id+'/stream',
+				endpoint: 'https://api.cloudflare.com/client/v4/accounts/' + nsz_cloudflare_stream.account_id + '/stream',
 				//endpoint: '/wp-json/nsz-cloudflare-stream/url?size='+file.size,
 				retryDelays: [0, 3000, 5000, 10000, 20000],
 				metadata: {
@@ -109,7 +184,7 @@
 					filetype: file.type,
 				},
 				headers: {
-					"Authorization": "Bearer "+nsz_cloudflare_stream.api_token,
+					"Authorization": "Bearer " + nsz_cloudflare_stream.api_token,
 					"X-Auth-Email": nsz_cloudflare_stream.account_email,
 					"X-Auth-Key": nsz_cloudflare_stream.api_token
 				},
@@ -136,9 +211,9 @@
 
 						$.ajax({
 							type: "GET",
-							url: 'https://api.cloudflare.com/client/v4/accounts/'+nsz_cloudflare_stream.account_id+'/stream/'+video_id,
+							url: 'https://api.cloudflare.com/client/v4/accounts/' + nsz_cloudflare_stream.account_id + '/stream/' + video_id,
 							headers: {
-								"Authorization": "Bearer "+nsz_cloudflare_stream.api_token,
+								"Authorization": "Bearer " + nsz_cloudflare_stream.api_token,
 								"X-Auth-Email": nsz_cloudflare_stream.account_email,
 								"X-Auth-Key": nsz_cloudflare_stream.api_token
 							},
@@ -160,8 +235,7 @@
 								error_area.html('Error fetching video URLs from Cloudflare.').show();
 							}
 						});
-					}
-					else {
+					} else {
 						error_area.html('Video ID not found.').show();
 					}
 				},
@@ -180,12 +254,12 @@
 
 	}
 
-	if( typeof acf.add_action !== 'undefined' ) {
+	if (typeof acf.add_action !== 'undefined') {
 		/**
 		 * Run initialize_field when existing fields of this type load,
 		 * or when new fields are appended via repeaters or similar.
 		 */
-		acf.add_action( 'ready_field/type=cloudflare_stream', initialize_field );
-		acf.add_action( 'append_field/type=cloudflare_stream', initialize_field );
+		acf.add_action('ready_field/type=cloudflare_stream', initialize_field);
+		acf.add_action('append_field/type=cloudflare_stream', initialize_field);
 	}
-} )( jQuery );
+})(jQuery);
