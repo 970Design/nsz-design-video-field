@@ -170,7 +170,7 @@
 }
 
 .nsz-cloudflare-stream-modal {
-    z-index: 100;
+    z-index: 99999;
     width: 50vw;
     position: fixed;
     top: 50%;
