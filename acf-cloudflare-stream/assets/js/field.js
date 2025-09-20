@@ -4,6 +4,9 @@
 (function ($) {
 	function initialize_field($field) {
 
+		const $fileInput = $field.find('.nsz-cloudflare-stream-file');
+		$fileInput.off('change')
+
 		// Function to delete video from Cloudflare Stream
 		function deleteCloudflareVideo(videoId, listItem, cfs_wrap) {
 			if (confirm('Are you sure you want to delete this video?')) {
@@ -147,7 +150,17 @@
 			cfs_wrap.find('.wrap-upload-field').show();
 		});
 
-		$('.nsz-cloudflare-stream-file').on('change', function (e) {
+		$fileInput.on('change', function (e) {
+
+			let currentUpload = $field.data('currentUpload');
+			if (currentUpload) {
+				currentUpload.abort();
+			}
+
+			if ($field.data('isUploading')) {
+				console.log('Upload already in progress');
+				return;
+			}
 
 			let file = e.target.files[0];
 			let video_id = null;
@@ -174,6 +187,8 @@
 				error_area.html('Please upload a video file.').show();
 				return;
 			}
+
+			$field.data('isUploading', true);
 
 			let upload = new tus.Upload(file, {
 				endpoint: 'https://api.cloudflare.com/client/v4/accounts/' + nsz_cloudflare_stream.account_id + '/stream',
@@ -203,6 +218,9 @@
 					video_id = res.getHeader("stream-media-id");
 				},
 				onSuccess: function () {
+
+					$field.data('isUploading', false);
+					$field.data('currentUpload', null);
 
 					progress_wrap.hide();
 
@@ -239,7 +257,14 @@
 						error_area.html('Video ID not found.').show();
 					}
 				},
+				onError: function(error) {
+					$field.data('isUploading', false);
+					$field.data('currentUpload', null);
+					error_area.html('Failed connecting to Cloudflare stream: ' + error).show();
+				}
 			});
+
+			$field.data('currentUpload', upload);
 
 			// Check if there are any previous uploads to continue.
 			upload.findPreviousUploads().then(function (previousUploads) {
