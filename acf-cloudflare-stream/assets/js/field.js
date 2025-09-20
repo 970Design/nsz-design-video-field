@@ -5,6 +5,10 @@
 	function initialize_field($field) {
 
 		const $fileInput = $field.find('.nsz-cloudflare-stream-file');
+		const $closeModal = $field.find('.nsz-cloudflare-stream-close-modal');
+		const $browseModal = $field.find('.nsz-cloudflare-stream-browse-modal');
+		const $clearVideo = $field.find('.nsz-cloudflare-stream-clear-video');
+
 		$fileInput.off('change')
 
 		// Function to delete video from Cloudflare Stream
@@ -38,13 +42,13 @@
 		 * $field is a jQuery object wrapping field elements in the editor.
 		 */
 
-		$('.nsz-cloudflare-stream-close-modal').on('click', function (e) {
+		$closeModal.on('click', function (e) {
 			e.preventDefault();
 			let cfs_wrap = $(this).closest('.cloudflare-stream-wrapper');
 			cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', false);
 		});
 
-		$('.nsz-cloudflare-stream-browse-modal').on('click', function (e) {
+		$browseModal.on('click', function (e) {
 			e.preventDefault();
 
 			let cfs_wrap = $(this).closest('.cloudflare-stream-wrapper');
@@ -81,7 +85,7 @@
 
 							for (let i = startIndex; i < endIndex; i++) {
 								const video = data.result[i];
-								let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div>File: ' + video.meta.name + ' <br />Duration: ' + video.duration + 'sec <br />Uploaded: ' + video.uploaded + '<br /><button style="margin-right: 1.25rem" class="button-primary nsz-select-video">Select</button><button class="button-secondary nsz-delete-video">Delete</button></div></li>');
+								let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div><strong>File:</strong> ' + video.meta.name + ' <br /><strong>Duration:</strong> ' + video.duration + 'sec <br /><strong>Uploaded:</strong> ' + video.uploaded + '<br /><button style="margin-right: 1.25rem; margin-top: .35rem;" class="button-primary nsz-select-video">Select</button><button style="margin-top: .35rem;" class="button-secondary nsz-delete-video">Delete</button></div></li>');
 
 								// Add the delete button click handler
 								list_item.find('.nsz-delete-video').on('click', function (e) {
@@ -137,7 +141,7 @@
 		});
 
 
-		$('.nsz-cloudflare-stream-clear-video').on('click', function (e) {
+		$clearVideo.on('click', function (e) {
 			let cfs_wrap = $(this).closest('.cloudflare-stream-wrapper');
 			cfs_wrap.find('.data-hls').val('');
 			cfs_wrap.find('.data-dash').val('');
