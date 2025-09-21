@@ -106,6 +106,11 @@
 			const cfs_wrap = $(this).closest('.cloudflare-stream-wrapper');
 			const error_area = cfs_wrap.find('.cloudflare-stream-error');
 
+			cfs_wrap.find('.nsz-cloudflare-stream-search').remove();
+
+			const searchBox = $('<input type="text" class="nsz-cloudflare-stream-search" placeholder="Search videos..." style="width: 100%; margin-bottom: 1rem;">');
+			const modalListing = cfs_wrap.find('.nsz-cloudflare-stream-modal-listing');
+			modalListing.before(searchBox);
 
 			$.ajax({
 				type: "GET",
@@ -124,9 +129,6 @@
 						if (data.result.length) {
 							let video_list = cfs_wrap.find('.nsz-cloudflare-stream-modal-listing');
 							video_list.html('');
-
-							let searchBox = $('<input type="text" class="nsz-cloudflare-stream-search" placeholder="Search videos..." style="width: 100%; margin-bottom: 1rem;">');
-							video_list.before(searchBox);
 
 							// Add the search handler
 							searchBox.on('input', function() {
