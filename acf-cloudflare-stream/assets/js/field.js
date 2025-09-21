@@ -173,7 +173,17 @@
 
 								for (let i = startIndex; i < endIndex; i++) {
 									const video = results[i];
-									let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div><strong>File:</strong> ' + video.meta.name + ' <br /><strong>Duration:</strong> ' + video.duration + 'sec <br /><strong>Uploaded:</strong> ' + video.uploaded + '<br /><button style="margin-right: 1.25rem; margin-top: .35rem;" class="button-primary nsz-select-video">Select</button><button style="margin-top: .35rem;" class="button-secondary nsz-delete-video">Delete</button></div></li>');
+									let uploadDate = new Date(video.uploaded);
+									let formattedDate = uploadDate.toLocaleDateString('en-US', {
+										month: 'numeric',
+										day: 'numeric',
+										year: 'numeric'
+									}) + ' ' + uploadDate.toLocaleTimeString('en-US', {
+										hour: 'numeric',
+										minute: '2-digit',
+										hour12: true
+									}).toLowerCase();
+									let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div><strong>File:</strong> ' + video.meta.name + ' <br /><strong>Duration:</strong> ' + video.duration + 'sec <br /><strong>Uploaded:</strong> ' + formattedDate + '<br /><button style="margin-right: 1.25rem; margin-top: .35rem;" class="button-primary nsz-select-video">Select</button><button style="margin-top: .35rem;" class="button-secondary nsz-delete-video">Delete</button></div></li>');
 
 									// Add the delete button click handler
 									list_item.find('.nsz-delete-video').on('click', function (e) {
