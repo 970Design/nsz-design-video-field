@@ -160,33 +160,20 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
      * @return void
      */
     public function render_field( $field ) {
-        // Debug output to show what field data is available.
-        //echo '<pre>';
-        //print_r( $field );
-        //echo '</pre>';
-
         $api_token = get_option('nsz_cfstream_api_key');
         $account_id = get_option('nsz_cfstream_account_id');
         $account_email = get_option('nsz_cfstream_account_email');
 
         if ($api_token && $account_id && $account_email) {
-            //loop through $field['value'] and create variables based on key names
-            //(unsure why they are sometimes undefined when referenced by key)
-            if (is_array($field['value']) && !empty($field['value'])) {
-                foreach ($field['value'] as $key => $value) {
-                    $$key = $value;
-                }
-            }
-
-            if (!isset($hls)) { $hls = ''; }
-            if (!isset($dash)) { $dash = ''; }
-            if (!isset($thumbnail)) { $thumbnail = ''; }
-            if (!isset($preview)) { $preview = ''; }
-            if (!isset($filename)) { $filename = ''; }
-            if (!isset($muted)) { $muted = false; }
-            if (!isset($autoplay)) { $autoplay = false; }
-            if (!isset($loop)) { $loop = false; }
-            if (!isset($controls)) { $controls = false; }
+            $hls = $field['value']['hls'] ?? '';
+            $dash = $field['value']['dash'] ?? '';
+            $thumbnail = $field['value']['thumbnail'] ?? '';
+            $preview = $field['value']['preview'] ?? '';
+            $filename = $field['value']['filename'] ?? '';
+            $muted = $field['value']['muted'] ?? false;
+            $autoplay = $field['value']['autoplay'] ?? false;
+            $loop = $field['value']['loop'] ?? false;
+            $controls = $field['value']['controls'] ?? false;
             $hide_options = $field['hide_options'] ?? false;
             $hide_file_info = $field['hide_file_info'] ?? false;
 
@@ -194,7 +181,6 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
             if ($hls || $dash || $thumbnail || $preview) {
                 $is_video_uploaded = true;
             }
-
             ?>
 
             <div class="cloudflare-stream-wrapper">
@@ -212,7 +198,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
                         </dialog>
                     </div>
 
-                    <?php if ($thumbnail) : ?>
+                    <?php if ($is_video_uploaded) : ?>
                         <div class="wrap-item cloudflare-video-clear-wrapper">
                             <button class="nsz-cloudflare-stream-clear-video button-primary" type="button">Clear Video</button>
                         </div>
