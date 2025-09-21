@@ -88,7 +88,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
          * ```
          */
         $this->l10n = array(
-            'error'	=> __( 'Error! Please enter a higher value', 'cloudflare-stream' ),
+                'error'	=> __( 'Error! Please enter a higher value', 'cloudflare-stream' ),
         );
 
         $protocol = is_ssl() ? 'https://' : 'http://';
@@ -99,8 +99,8 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         $plugin_version = $plugin_data['Version'] ?? '1.0';
 
         $this->env = array(
-            'url'     => $protocol.$domainName.'/app/plugins/nsz-design-video-field/acf-cloudflare-stream/', // URL to the acf-cloudflare-stream directory.
-            'version' => $plugin_version, // Replace this with your theme or plugin version constant.
+                'url'     => $protocol.$domainName.'/app/plugins/nsz-design-video-field/acf-cloudflare-stream/', // URL to the acf-cloudflare-stream directory.
+                'version' => $plugin_version, // Replace this with your theme or plugin version constant.
         );
 
         /**
@@ -128,18 +128,26 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         /*
          * Repeat for each setting you wish to display for this field type.
          */
-        /*
-		acf_render_field_setting(
-			$field,
-			array(
-				'label'			=> __( 'Font Size','cloudflare-stream' ),
-				'instructions'	=> __( 'Customise the input font size','cloudflare-stream' ),
-				'type'			=> 'number',
-				'name'			=> 'font_size',
-				'append'		=> 'px',
-			)
-		);
-        */
+
+        acf_render_field_setting(
+                $field,
+                array(
+                        'label'			=> __( 'Hide Options','cloudflare-stream' ),
+                        'instructions'	=> __( 'Hide the video player options.','cloudflare-stream' ),
+                        'type'			=> 'true_false',
+                        'name'			=> 'hide_options',
+                )
+        );
+
+        acf_render_field_setting(
+                $field,
+                array(
+                        'label'			=> __( 'Hide File Info','cloudflare-stream' ),
+                        'instructions'	=> __( 'Hide the detailed file information.','cloudflare-stream' ),
+                        'type'			=> 'true_false',
+                        'name'			=> 'hide_file_info',
+                )
+        );
 
         // To render field settings on other tabs in ACF 6.0+:
         // https://www.advancedcustomfields.com/resources/adding-custom-settings-fields/#moving-field-setting
@@ -175,6 +183,12 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
             if (!isset($thumbnail)) { $thumbnail = ''; }
             if (!isset($preview)) { $preview = ''; }
             if (!isset($filename)) { $filename = ''; }
+            if (!isset($muted)) { $muted = false; }
+            if (!isset($autoplay)) { $autoplay = false; }
+            if (!isset($loop)) { $loop = false; }
+            if (!isset($controls)) { $controls = false; }
+            $hide_options = $field['hide_options'] ?? false;
+            $hide_file_info = $field['hide_file_info'] ?? false;
 
             $is_video_uploaded = false;
             if ($hls || $dash || $thumbnail || $preview) {
@@ -185,16 +199,22 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 
             <div class="cloudflare-stream-wrapper">
 
-                <div class="wrap-browse-field">
-                    <button class="nsz-cloudflare-stream-browse-modal button-primary">Browse Existing Videos</button>
-                    <dialog class="nsz-cloudflare-stream-modal">
-                        <div class="nsz-cloudflare-stream-modal-listing">
+                <div class="wrap-upper-nav">
+                    <div class="wrap-browse-field">
+                        <button class="nsz-cloudflare-stream-browse-modal button-primary">Browse Existing Videos</button>
+                        <dialog class="nsz-cloudflare-stream-modal">
+                            <div class="nsz-cloudflare-stream-modal-listing">
 
-                        </div>
-                        <form method="dialog">
-                            <button class="nsz-cloudflare-stream-close-modal button-primary">Close</button>
-                        </form>
-                    </dialog>
+                            </div>
+                            <form method="dialog">
+                                <button class="nsz-cloudflare-stream-close-modal button-primary">Close</button>
+                            </form>
+                        </dialog>
+                    </div>
+
+                    <div class="wrap-item cloudflare-video-clear-wrapper">
+                        <button class="nsz-cloudflare-stream-clear-video button-primary" type="button">Clear Video</button>
+                    </div>
                 </div>
 
                 <div class="wrap-upload-field <?php if (!$is_video_uploaded) : ?> active <?php endif; ?>">
@@ -225,37 +245,67 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 
                     <h4><span class="data-filename-display"><?php echo $filename; ?></span> Details:</h4>
 
-                    <div class="wrap-item wrap-thumbnail">
-                        <img class="cloudflare-video-thumbnail-preview" src="<?php echo $thumbnail ?>" />
-                    </div>
-
-                    <input class="data-filename" type="hidden" name="<?php echo esc_attr($field['name']) ?>[filename]" value="<?php echo $filename ?>" />
-
-                    <div class="cloudflare-video-details-item-holder">
-                        <div class="wrap-item wrap-hls">
-                            <div class="acf-label"><label>HLS Manifest</label></div>
-                            <input  class="data-hls" type="text" name="<?php echo esc_attr($field['name']) ?>[hls]" value="<?php echo $hls ?>"/>
-                        </div>
-
-                        <div class="wrap-item wrap-dash">
-                            <div class="acf-label"><label>Dash Manifest</label></div>
-                            <input  class="data-dash" type="text" name="<?php echo esc_attr($field['name']) ?>[dash]" value="<?php echo $dash ?>" />
-                        </div>
-
+                    <div class="cloudflare-video-details-info">
                         <div class="wrap-item wrap-thumbnail">
-                            <div class="acf-label"><label>Thumbnail</label></div>
-                            <input class="data-thumbnail" type="text" name="<?php echo esc_attr($field['name']) ?>[thumbnail]" value="<?php echo $thumbnail ?>" />
+                            <img class="cloudflare-video-thumbnail-preview" src="<?php echo $thumbnail ?>" />
                         </div>
 
-                        <div class="wrap-item wrap-preview">
-                            <div class="acf-label"> <label>Preview</label></div>
-                            <input class="data-preview" type="text" name="<?php echo esc_attr($field['name']) ?>[preview]" value="<?php echo $preview ?>" />
+                        <input class="data-filename" type="hidden" name="<?php echo esc_attr($field['name']) ?>[filename]" value="<?php echo $filename ?>" />
+
+                        <div class="cloudflare-video-details-options">
+
+                            <?php if (!$hide_options) : ?>
+                                <div class="cloudflare-video-details-option-holder">
+                                    <div class="wrap-item">
+                                        <div class="acf-label"><label>Muted</label></div>
+                                        <input type="hidden" name="<?php echo esc_attr($field['name']) ?>[muted]" value="0" />
+                                        <input type="checkbox" class="data-muted" name="<?php echo esc_attr($field['name']) ?>[muted]" value="1" <?php if ($muted) : ?> checked <?php endif; ?> />
+                                    </div>
+                                    <div class="wrap-item">
+                                        <div class="acf-label"><label>Autoplay</label></div>
+                                        <input type="hidden" name="<?php echo esc_attr($field['name']) ?>[autoplay]" value="0" />
+                                        <input type="checkbox" class="data-autoplay" name="<?php echo esc_attr($field['name']) ?>[autoplay]" value="1" <?php if ($autoplay) : ?> checked <?php endif; ?> />
+                                    </div>
+                                    <div class="wrap-item">
+                                        <div class="acf-label"><label>Loop</label></div>
+                                        <input type="hidden" name="<?php echo esc_attr($field['name']) ?>[loop]" value="0" />
+                                        <input type="checkbox" class="data-loop" name="<?php echo esc_attr($field['name']) ?>[loop]" value="1" <?php if ($loop) : ?> checked <?php endif; ?> />
+                                    </div>
+                                    <div class="wrap-item">
+                                        <div class="acf-label"><label>Controls</label></div>
+                                        <input type="hidden" name="<?php echo esc_attr($field['name']) ?>[controls]" value="0" />
+                                        <input type="checkbox" class="data-controls" name="<?php echo esc_attr($field['name']) ?>[controls]" value="1" <?php if ($controls) : ?> checked <?php endif; ?> />
+                                    </div>
+
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!$hide_file_info) : ?>
+                                <div class="cloudflare-video-details-item-holder">
+                                    <div class="wrap-item wrap-hls">
+                                        <div class="acf-label"><label>HLS Manifest</label></div>
+                                        <input  class="data-hls" type="text" name="<?php echo esc_attr($field['name']) ?>[hls]" value="<?php echo $hls ?>"/>
+                                    </div>
+
+                                    <div class="wrap-item wrap-dash">
+                                        <div class="acf-label"><label>Dash Manifest</label></div>
+                                        <input  class="data-dash" type="text" name="<?php echo esc_attr($field['name']) ?>[dash]" value="<?php echo $dash ?>" />
+                                    </div>
+
+                                    <div class="wrap-item wrap-thumbnail">
+                                        <div class="acf-label"><label>Thumbnail</label></div>
+                                        <input class="data-thumbnail" type="text" name="<?php echo esc_attr($field['name']) ?>[thumbnail]" value="<?php echo $thumbnail ?>" />
+                                    </div>
+
+                                    <div class="wrap-item wrap-preview">
+                                        <div class="acf-label"> <label>Preview</label></div>
+                                        <input class="data-preview" type="text" name="<?php echo esc_attr($field['name']) ?>[preview]" value="<?php echo $preview ?>" />
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
-                    <div class="wrap-item cloudflare-video-clear-wrapper">
-                        <button class="nsz-cloudflare-stream-clear-video button-primary" type="button">Clear Video</button>
-                    </div>
                 </div>
 
             </div>
@@ -281,24 +331,24 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         $version = $this->env['version'];
 
         wp_register_script(
-            'nsz-cloudflare-stream-tus',
-            "{$url}assets/js/tus.min.js",
-            array( 'acf-input' ),
-            $version
+                'nsz-cloudflare-stream-tus',
+                "{$url}assets/js/tus.min.js",
+                array( 'acf-input' ),
+                $version
         );
 
         wp_register_script(
-            'nsz-cloudflare-stream',
-            "{$url}assets/js/field.js",
-            array( 'acf-input' ),
-            $version
+                'nsz-cloudflare-stream',
+                "{$url}assets/js/field.js",
+                array( 'acf-input' ),
+                $version
         );
 
         wp_register_style(
-            'nsz-cloudflare-stream',
-            "{$url}assets/css/field.css",
-            array( 'acf-input' ),
-            $version
+                'nsz-cloudflare-stream',
+                "{$url}assets/css/field.css",
+                array( 'acf-input' ),
+                $version
         );
 
         wp_enqueue_script( 'nsz-cloudflare-stream-tus' );
@@ -310,9 +360,9 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         $account_email = get_option('nsz_cfstream_account_email');
 
         $params = array(
-            'api_token' => $api_token,
-            'account_id' => $account_id,
-            'account_email' => $account_email,
+                'api_token' => $api_token,
+                'account_id' => $account_id,
+                'account_email' => $account_email,
         );
 
         wp_localize_script( 'nsz-cloudflare-stream', 'nsz_cloudflare_stream', $params );
