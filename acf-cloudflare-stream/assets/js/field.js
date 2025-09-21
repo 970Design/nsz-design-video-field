@@ -67,6 +67,38 @@
 						let video_list = cfs_wrap.find('.nsz-cloudflare-stream-modal-listing');
 						video_list.html('');
 
+						let searchBox = $('<input type="text" class="nsz-cloudflare-stream-search" placeholder="Search videos..." style="width: 100%; margin-bottom: 1rem;">');
+						video_list.before(searchBox);
+
+						// Add the search handler
+						searchBox.on('input', function() {
+							const searchTerm = $(this).val().toLowerCase();
+							const filteredResults = data.result.filter(video =>
+								video.meta.name.toLowerCase().includes(searchTerm)
+							);
+
+							// Recalculate pagination with filtered results
+							currentPage = 1;
+							const totalFilteredPages = Math.ceil(filteredResults.length / itemsPerPage);
+
+							// Update pagination controls
+							paginationContainer.html('');
+							for (let i = 1; i <= totalFilteredPages; i++) {
+								const pageButton = $(`<button class="button-${i === currentPage ? 'primary' : 'secondary'} page-button ${i === currentPage ? 'active' : ''}">${i}</button>`);
+								pageButton.on('click', function(e) {
+									e.preventDefault();
+									currentPage = i;
+									displayVideosForPage(currentPage, filteredResults);
+									paginationContainer.find('.page-button').removeClass('active button-primary').addClass('button-secondary');
+									$(this).removeClass('button-secondary').addClass('active button-primary');
+								});
+								paginationContainer.append(pageButton);
+							}
+
+							// Display filtered results
+							displayVideosForPage(1, filteredResults);
+						});
+
 						// Remove any existing pagination controls first
 						cfs_wrap.find('.nsz-cloudflare-stream-pagination-controls').remove();
 
@@ -78,13 +110,13 @@
 
 
 						// Function to display videos for current page
-						function displayVideosForPage(pageNum) {
+						function displayVideosForPage(pageNum, results = data.result) {
 							video_list.html('');
 							const startIndex = (pageNum - 1) * itemsPerPage;
-							const endIndex = Math.min(startIndex + itemsPerPage, data.result.length);
+							const endIndex = Math.min(startIndex + itemsPerPage, results.length);
 
 							for (let i = startIndex; i < endIndex; i++) {
-								const video = data.result[i];
+								const video = results[i];
 								let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div><strong>File:</strong> ' + video.meta.name + ' <br /><strong>Duration:</strong> ' + video.duration + 'sec <br /><strong>Uploaded:</strong> ' + video.uploaded + '<br /><button style="margin-right: 1.25rem; margin-top: .35rem;" class="button-primary nsz-select-video">Select</button><button style="margin-top: .35rem;" class="button-secondary nsz-delete-video">Delete</button></div></li>');
 
 								// Add the delete button click handler
@@ -113,14 +145,14 @@
 
 						// Create pagination buttons
 						for (let i = 1; i <= totalPages; i++) {
-							const pageButton = $(`<button class="button-secondary page-button ${i === currentPage ? 'active' : ''}">${i}</button>`);
+							const pageButton = $(`<button class="button-${i === currentPage ? 'primary' : 'secondary'} page-button ${i === currentPage ? 'active' : ''}">${i}</button>`);
 							pageButton.on('click', function (e) {
-
 								e.preventDefault();
 								currentPage = i;
 								displayVideosForPage(currentPage);
-								paginationContainer.find('.page-button').removeClass('active');
-								$(this).addClass('active');
+								// Update button classes when switching pages
+								paginationContainer.find('.page-button').removeClass('active button-primary').addClass('button-secondary');
+								$(this).removeClass('button-secondary').addClass('active button-primary');
 							});
 							paginationContainer.append(pageButton);
 						}
