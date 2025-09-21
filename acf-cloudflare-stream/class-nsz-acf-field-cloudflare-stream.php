@@ -160,9 +160,10 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
      * @return void
      */
     public function render_field( $field ) {
-        $api_token = get_option('nsz_cfstream_api_key');
-        $account_id = get_option('nsz_cfstream_account_id');
-        $account_email = get_option('nsz_cfstream_account_email');
+        $api_token = nsz_decrypt_value(get_option('nsz_cfstream_api_key', ''));
+        $account_id = nsz_decrypt_value(get_option('nsz_cfstream_account_id', ''));
+        $account_email = nsz_decrypt_value(get_option('nsz_cfstream_account_email', ''));
+
 
         if ($api_token && $account_id && $account_email) {
             $hls = $field['value']['hls'] ?? '';
@@ -343,9 +344,10 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         wp_enqueue_script( 'nsz-cloudflare-stream' );
         wp_enqueue_style( 'nsz-cloudflare-stream' );
 
-        $api_token = get_option('nsz_cfstream_api_key');
-        $account_id = get_option('nsz_cfstream_account_id');
-        $account_email = get_option('nsz_cfstream_account_email');
+        $api_token = nsz_decrypt_value(get_option('nsz_cfstream_api_key', ''));
+        $account_id = nsz_decrypt_value(get_option('nsz_cfstream_account_id', ''));
+        $account_email = nsz_decrypt_value(get_option('nsz_cfstream_account_email', ''));
+
 
         $params = array(
                 'api_token' => $api_token,
