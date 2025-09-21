@@ -168,7 +168,6 @@
 							const itemsPerPage = 50;
 							const totalPages = Math.ceil(data.result.length / itemsPerPage);
 
-
 							// Function to display videos for current page
 							function displayVideosForPage(pageNum, results = data.result) {
 								video_list.html('');
@@ -225,8 +224,6 @@
 					} catch(e) {
 						error_area.html('Invalid server response').show();
 					}
-
-
 
 					cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', true);
 				},
@@ -299,7 +296,6 @@
 
 			let upload = new tus.Upload(file, {
 				endpoint: `https://api.cloudflare.com/client/v4/accounts/${nsz_cloudflare_stream.account_id}/stream`,
-				//endpoint: '/wp-json/nsz-cloudflare-stream/url?size='+file.size,
 				retryDelays: [0, 3000, 5000, 10000, 20000],
 				metadata: {
 					name: file.name,
