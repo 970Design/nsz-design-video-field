@@ -212,9 +212,11 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
                         </dialog>
                     </div>
 
-                    <div class="wrap-item cloudflare-video-clear-wrapper">
-                        <button class="nsz-cloudflare-stream-clear-video button-primary" type="button">Clear Video</button>
-                    </div>
+                    <?php if ($thumbnail) : ?>
+                        <div class="wrap-item cloudflare-video-clear-wrapper">
+                            <button class="nsz-cloudflare-stream-clear-video button-primary" type="button">Clear Video</button>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="wrap-upload-field <?php if (!$is_video_uploaded) : ?> active <?php endif; ?>">
