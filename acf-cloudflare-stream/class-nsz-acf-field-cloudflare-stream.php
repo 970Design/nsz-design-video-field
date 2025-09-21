@@ -53,7 +53,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
          *
          * For field descriptions. May contain spaces.
          */
-        $this->description = __( 'This field uploads videos to Cloudflare stream and provide a video URL.', 'cloudflare-stream' );
+        $this->description = __( 'This field uploads videos to Cloudflare Stream and provides manifest URLs, thumbnails and video options.', 'cloudflare-stream' );
 
         /**
          * Field type Doc URL.
