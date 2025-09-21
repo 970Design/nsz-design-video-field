@@ -2,7 +2,6 @@
  * Included when cloudflare_stream fields are rendered for editing by publishers.
  */
 (function ($) {
-	// Input sanitization helper
 	function sanitizeHTML(str) {
 		return str.replace(/[&<>"']/g, match => ({
 			'&': '&amp;',
@@ -13,7 +12,6 @@
 		})[match]);
 	}
 
-	// File validation helper
 	function validateFile(file, error_area) {
 		const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg'];
 		if (!allowedTypes.includes(file.type)) {
@@ -29,7 +27,6 @@
 		return true;
 	}
 
-	// Response validation helper
 	function validateResponse(response) {
 		if (!response || !response.result) {
 			throw new Error('Invalid response format');

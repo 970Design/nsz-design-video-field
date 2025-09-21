@@ -7,13 +7,8 @@ function nsz_encrypt_value($value) {
         return '';
     }
 
-    // Use WordPress salt as encryption key
     $key = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
-
-    // Create a random IV
     $iv = openssl_random_pseudo_bytes(16);
-
-    // Encrypt the value
     $encrypted = openssl_encrypt(
             $value,
             'AES-256-CBC',
@@ -26,7 +21,6 @@ function nsz_encrypt_value($value) {
         return '';
     }
 
-    // Combine IV and encrypted data
     return base64_encode($iv . $encrypted);
 }
 
@@ -40,14 +34,9 @@ function nsz_decrypt_value($encrypted_data) {
         return '';
     }
 
-    // Extract IV from the first 16 bytes
     $iv = substr($decoded, 0, 16);
     $encrypted = substr($decoded, 16);
-
-    // Use WordPress salt as encryption key
     $key = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
-
-    // Decrypt the value
     $decrypted = openssl_decrypt(
             $encrypted,
             'AES-256-CBC',
@@ -83,19 +72,16 @@ function nsz_design_video_field_settings_page() {
             wp_die(__('Please wait a few seconds before submitting again.'), 403);
         }
 
-        // Encrypt and save API Key
         $nsz_cfstream_api_value = isset($_POST[$nsz_cfstream_api_field])
                 ? nsz_encrypt_value(sanitize_text_field($_POST[$nsz_cfstream_api_field]))
                 : '';
         update_option($nsz_cfstream_api_field, $nsz_cfstream_api_value);
 
-        // Encrypt and save Account ID
         $nsz_cfstream_account_id_value = isset($_POST[$nsz_cfstream_account_id_field])
                 ? nsz_encrypt_value(sanitize_text_field($_POST[$nsz_cfstream_account_id_field]))
                 : '';
         update_option($nsz_cfstream_account_id_field, $nsz_cfstream_account_id_value);
 
-        // Encrypt and save Account Email
         $nsz_cfstream_account_email_value = isset($_POST[$nsz_cfstream_account_email_field])
                 ? nsz_encrypt_value(sanitize_email($_POST[$nsz_cfstream_account_email_field]))
                 : '';
@@ -111,7 +97,6 @@ function nsz_design_video_field_settings_page() {
         );
     }
 
-    // Retrieve and decrypt the current values
     $nsz_cfstream_api_value = nsz_decrypt_value(get_option($nsz_cfstream_api_field, ''));
     $nsz_cfstream_account_id_value = nsz_decrypt_value(get_option($nsz_cfstream_account_id_field, ''));
     $nsz_cfstream_account_email_value = nsz_decrypt_value(get_option($nsz_cfstream_account_email_field, ''));
