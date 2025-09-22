@@ -48,6 +48,23 @@ function nsz_decrypt_value($encrypted_data) {
     return $decrypted === false ? '' : $decrypted;
 }
 
+function nsz_obfuscate_string($string, $show_start = 4, $show_end = 4) {
+    if (empty($string)) {
+        return '';
+    }
+
+    $length = strlen($string);
+    if ($length <= ($show_start + $show_end)) {
+        return str_repeat('*', $length);
+    }
+
+    $start = substr($string, 0, $show_start);
+    $end = substr($string, -$show_end);
+    $middle_length = $length - ($show_start + $show_end);
+
+    return $start . str_repeat('*', $middle_length) . $end;
+}
+
 function nsz_design_video_field_settings_page() {
     if (!current_user_can('manage_options')) {
         wp_die(__('You do not have sufficient permissions to access this page.'), 403);
@@ -72,9 +89,10 @@ function nsz_design_video_field_settings_page() {
             wp_die(__('Please wait a few seconds before submitting again.'), 403);
         }
 
-        $nsz_cfstream_api_value = isset($_POST[$nsz_cfstream_api_field])
-                ? nsz_encrypt_value(sanitize_text_field($_POST[$nsz_cfstream_api_field]))
-                : '';
+        $nsz_cfstream_api_value = get_option($nsz_cfstream_api_field, null);
+        if (isset($_POST[$nsz_cfstream_api_field]) && !str_contains($_POST[$nsz_cfstream_api_field], '*')) {
+            $nsz_cfstream_api_value = nsz_encrypt_value(sanitize_text_field($_POST[$nsz_cfstream_api_field]));
+        }
         update_option($nsz_cfstream_api_field, $nsz_cfstream_api_value);
 
         $nsz_cfstream_account_id_value = isset($_POST[$nsz_cfstream_account_id_field])
@@ -131,7 +149,7 @@ function nsz_design_video_field_settings_page() {
                                    type="text"
                                    id="<?php echo esc_attr($nsz_cfstream_api_field); ?>"
                                    name="<?php echo esc_attr($nsz_cfstream_api_field); ?>"
-                                   value="<?php echo esc_attr($nsz_cfstream_api_value); ?>"
+                                   value="<?php echo esc_attr(nsz_obfuscate_string($nsz_cfstream_api_value)); ?>"
                                    size="35">
                             <br><br>
                             <span class="small">
