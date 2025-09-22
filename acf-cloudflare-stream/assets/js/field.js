@@ -301,9 +301,12 @@
 
 			$field.data('isUploading', true);
 
+			let maxRetries = 3;
+			let currentRetry = 0;
+
 			let upload = new tus.Upload(file, {
 				endpoint: `https://api.cloudflare.com/client/v4/accounts/${nsz_cloudflare_stream.account_id}/stream`,
-				retryDelays: [0, 3000, 5000, 10000, 20000],
+				retryDelays: [0, 3000, 5000, 10000],
 				metadata: {
 					name: file.name,
 					filetype: file.type,
@@ -316,7 +319,38 @@
 				uploadSize: file.size,
 				chunkSize: 50 * 1024 * 1024,
 				onError: function (error) {
-					error_area.html('Failed connecting to Cloudflare stream: ' + error).show();
+					currentRetry++;
+
+					// Check if max retries reached or if it's a fatal error
+					if (currentRetry > maxRetries ||
+						error.name === 'AuthError' ||
+						error.name === 'NotFoundError') {
+
+						$field.data('isUploading', false);
+						$field.data('currentUpload', null);
+						progress_wrap.hide();
+
+						// Display specific error messages
+						let errorMessage = 'Upload failed: ';
+						if (error.name === 'AuthError') {
+							errorMessage += 'Authentication failed. Please check your credentials.';
+						} else if (error.name === 'NotFoundError') {
+							errorMessage += 'Upload endpoint not found.';
+						} else if (currentRetry > maxRetries) {
+							errorMessage += 'Maximum retry attempts reached. Please try again later.';
+						} else {
+							errorMessage += error.message || 'Unknown error occurred.';
+						}
+
+						error_area.html(errorMessage).show();
+
+						// Abort the upload
+						upload.abort();
+						return;
+					}
+
+					console.error('Upload error:', error);
+					error_area.html('Upload attempt ' + currentRetry + ' of ' + maxRetries + ' failed. Retrying...').show();
 				},
 				onProgress: function (bytesUploaded, bytesTotal) {
 					var percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2);
