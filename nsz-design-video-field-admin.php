@@ -34,7 +34,17 @@ function nsz_decrypt_value($encrypted_data) {
         return '';
     }
 
+    // Verify we have enough data for IV (16 bytes) plus at least 1 byte of encrypted data
+    if (strlen($decoded) < 17) {
+        return '';
+    }
+
     $iv = substr($decoded, 0, 16);
+    // Verify IV length is exactly 16 bytes
+    if (strlen($iv) !== 16) {
+        return '';
+    }
+
     $encrypted = substr($decoded, 16);
     $key = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
     $decrypted = openssl_decrypt(
