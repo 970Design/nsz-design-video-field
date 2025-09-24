@@ -42,23 +42,23 @@ Array
 )
 ```
 
-## Security
-
-Your Cloudflare credentials are encrypted and only saved locally on your WordPress installation, and are not transferred or shared with any external services.
-
-## Gotchas
-
-If You are getting the error "Error fetching videos from Cloudflare" or "Failed connecting to Cloudflare stream" - and you see in the console it's a CORS error - it's likely that your Cloudflare credentials are incorrect, your API credentials' permissions are incorrect, or you do not have Cloudflare Stream enabled on your account.  Double-check your credentials & permissions and ensure you have Stream enabled and enough space in your account.
-
 ## Vue Integration
 
 If you're using Vue.js in your project, you can use our companion component to render the data provided by this field:
 [@970design/vue-video-stream](https://www.npmjs.com/package/@970design/vue-video-stream)
 
+## Gotchas
+
+If You are getting the error "Error fetching videos from Cloudflare" or "Failed connecting to Cloudflare stream" - and you see in the console it's a CORS error - it's likely that your Cloudflare credentials are incorrect, your API credentials' permissions are incorrect, or you do not have Cloudflare Stream enabled on your account.  Double-check your credentials & permissions and ensure you have Stream enabled and enough space in your account.
+
 ## Related Services
 
 - [Advanced Custom Fields](https://www.advancedcustomfields.com/)
 - [Cloudflare Stream](https://www.cloudflare.com/products/cloudflare-stream/)
+
+## Security
+
+Your Cloudflare credentials are encrypted and only saved locally on your WordPress installation, and are not transferred or shared with any external services.
 
 ## License
 
