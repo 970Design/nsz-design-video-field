@@ -34,6 +34,50 @@
 		return response;
 	}
 
+	/**
+	 * Handle autoplay/muted relationship
+	 * When autoplay is checked, muted must be checked and disabled
+	 */
+	function handleAutoplayMutedRelationship($field) {
+		const $autoplayCheckbox = $field.find('.data-autoplay');
+		const $mutedCheckbox = $field.find('.data-muted');
+		const $mutedHidden = $field.find('input[type="hidden"][name*="[muted]"]');
+
+		// Function to update muted state based on autoplay
+		function updateMutedState() {
+			if ($autoplayCheckbox.is(':checked')) {
+				// Check and disable muted checkbox
+				$mutedCheckbox.prop('checked', true);
+				$mutedCheckbox.prop('disabled', true);
+				// Ensure hidden field has correct value
+				$mutedHidden.val('1');
+			} else {
+				// Re-enable muted checkbox
+				$mutedCheckbox.prop('disabled', false);
+			}
+		}
+
+		// Initialize on load
+		updateMutedState();
+
+		// Watch for changes to autoplay
+		$autoplayCheckbox.off('change.autoplay').on('change.autoplay', function() {
+			updateMutedState();
+		});
+
+		// Prevent unchecking muted when autoplay is checked
+		$mutedCheckbox.off('change.muted').on('change.muted', function() {
+			if ($autoplayCheckbox.is(':checked') && !$(this).is(':checked')) {
+				// Force it back to checked
+				$(this).prop('checked', true);
+				$mutedHidden.val('1');
+			} else {
+				// Update hidden field based on checkbox state
+				$mutedHidden.val($(this).is(':checked') ? '1' : '0');
+			}
+		});
+	}
+
 	function initialize_field($field) {
 
 		const $fileInput = $field.find('.nsz-cloudflare-stream-file');
@@ -42,6 +86,9 @@
 		const $clearVideo = $field.find('.nsz-cloudflare-stream-clear-video');
 
 		$fileInput.off('change');
+
+		// Initialize autoplay/muted relationship
+		handleAutoplayMutedRelationship($field);
 
 		// Function to delete video from Cloudflare Stream
 		function deleteCloudflareVideo(videoId, listItem, cfs_wrap) {
@@ -391,6 +438,9 @@
 
 								success_area.html('Upload complete!').show();
 								video_upload.hide();
+
+								// Re-initialize autoplay/muted relationship after upload
+								handleAutoplayMutedRelationship($field);
 							},
 							error: function (data) {
 								console.log(data);
