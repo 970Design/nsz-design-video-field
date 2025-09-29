@@ -2,77 +2,83 @@
 
 if (!defined('ABSPATH')) exit; // Exit if accessed directly
 
-function nsz_encrypt_value($value) {
-    if (empty($value)) {
-        return '';
+if (!function_exists('nsz_encrypt_value')) {
+    function nsz_encrypt_value($value) {
+        if (empty($value)) {
+            return '';
+        }
+
+        $key = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
+        $iv = openssl_random_pseudo_bytes(16);
+        $encrypted = openssl_encrypt(
+                $value,
+                'AES-256-CBC',
+                $key,
+                0,
+                $iv
+        );
+
+        if ($encrypted === false) {
+            return '';
+        }
+
+        return base64_encode($iv . $encrypted);
     }
-
-    $key = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
-    $iv = openssl_random_pseudo_bytes(16);
-    $encrypted = openssl_encrypt(
-            $value,
-            'AES-256-CBC',
-            $key,
-            0,
-            $iv
-    );
-
-    if ($encrypted === false) {
-        return '';
-    }
-
-    return base64_encode($iv . $encrypted);
 }
 
-function nsz_decrypt_value($encrypted_data) {
-    if (empty($encrypted_data)) {
-        return '';
+if (!function_exists('nsz_decrypt_value')) {
+    function nsz_decrypt_value($encrypted_data) {
+        if (empty($encrypted_data)) {
+            return '';
+        }
+
+        $decoded = base64_decode($encrypted_data);
+        if ($decoded === false) {
+            return '';
+        }
+
+        // Verify we have enough data for IV (16 bytes) plus at least 1 byte of encrypted data
+        if (strlen($decoded) < 17) {
+            return '';
+        }
+
+        $iv = substr($decoded, 0, 16);
+        // Verify IV length is exactly 16 bytes
+        if (strlen($iv) !== 16) {
+            return '';
+        }
+
+        $encrypted = substr($decoded, 16);
+        $key = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
+        $decrypted = openssl_decrypt(
+                $encrypted,
+                'AES-256-CBC',
+                $key,
+                0,
+                $iv
+        );
+
+        return $decrypted === false ? '' : $decrypted;
     }
-
-    $decoded = base64_decode($encrypted_data);
-    if ($decoded === false) {
-        return '';
-    }
-
-    // Verify we have enough data for IV (16 bytes) plus at least 1 byte of encrypted data
-    if (strlen($decoded) < 17) {
-        return '';
-    }
-
-    $iv = substr($decoded, 0, 16);
-    // Verify IV length is exactly 16 bytes
-    if (strlen($iv) !== 16) {
-        return '';
-    }
-
-    $encrypted = substr($decoded, 16);
-    $key = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
-    $decrypted = openssl_decrypt(
-            $encrypted,
-            'AES-256-CBC',
-            $key,
-            0,
-            $iv
-    );
-
-    return $decrypted === false ? '' : $decrypted;
 }
 
-function nsz_obfuscate_string($string, $show_start = 4, $show_end = 4) {
-    if (empty($string)) {
-        return '';
+if (!function_exists('nsz_obfuscate_string')) {
+    function nsz_obfuscate_string($string, $show_start = 4, $show_end = 4) {
+        if (empty($string)) {
+            return '';
+        }
+
+        $length = strlen($string);
+        if ($length <= ($show_start + $show_end)) {
+            return str_repeat('*', $length);
+        }
+
+        $start = substr($string, 0, $show_start);
+        $end = substr($string, -$show_end);
+        $middle_length = $length - ($show_start + $show_end);
+
+        return $start . str_repeat('*', $middle_length) . $end;
     }
-
-    $length = strlen($string);
-    if ($length <= ($show_start + $show_end)) {
-        return str_repeat('*', $length);
-    }
-
-    $start = substr($string, 0, $show_start);
-    $end = substr($string, -$show_end);
-    $middle_length = $length - ($show_start + $show_end);
-
-    return $start . str_repeat('*', $middle_length) . $end;
 }
 
 function nsz_design_video_field_settings_page() {
