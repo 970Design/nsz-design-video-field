@@ -75,7 +75,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 	    $this->defaults = array(
 		    'default_autoplay' => 0,
 		    'default_muted' => 0,
-		    'default_controls' => 1,
+		    'default_controls' => 0,
 		    'default_loop' => 0,
 	    );
 
