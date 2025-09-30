@@ -69,14 +69,15 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
          */
         $this->tutorial_url = '';
 
-        /**
-         * Defaults for your custom user-facing settings for this field type.
-         */
-        /*
-		$this->defaults = array(
-			'font_size'	=> 14,
-		);
-        */
+	    /**
+	     * Defaults for your custom user-facing settings for this field type.
+	     */
+	    $this->defaults = array(
+		    'default_autoplay' => 0,
+		    'default_muted' => 0,
+		    'default_controls' => 1,
+		    'default_loop' => 0,
+	    );
 
         /**
          * Strings used in JavaScript code.
@@ -129,6 +130,16 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
          * Repeat for each setting you wish to display for this field type.
          */
 
+	    acf_render_field_setting(
+		    $field,
+		    array(
+			    'label'			=> __( 'Hide File Info','cloudflare-stream' ),
+			    'instructions'	=> __( 'Hide the detailed file information.','cloudflare-stream' ),
+			    'type'			=> 'true_false',
+			    'name'			=> 'hide_file_info',
+		    )
+	    );
+
         acf_render_field_setting(
                 $field,
                 array(
@@ -139,15 +150,86 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
                 )
         );
 
-        acf_render_field_setting(
-                $field,
-                array(
-                        'label'			=> __( 'Hide File Info','cloudflare-stream' ),
-                        'instructions'	=> __( 'Hide the detailed file information.','cloudflare-stream' ),
-                        'type'			=> 'true_false',
-                        'name'			=> 'hide_file_info',
-                )
-        );
+	    // Default video player options (only visible when hide_options is not checked)
+	    acf_render_field_setting(
+		    $field,
+		    array(
+			    'label'			=> __( 'Default: Autoplay','cloudflare-stream' ),
+			    'instructions'	=> __( 'Set autoplay as default for new videos. Note: Autoplay will automatically enable muted.','cloudflare-stream' ),
+			    'type'			=> 'true_false',
+			    'name'			=> 'default_autoplay',
+			    'ui'            => 1,
+			    'conditional_logic' => array(
+				    array(
+					    array(
+						    'field' => 'hide_options',
+						    'operator' => '!=',
+						    'value' => '1',
+					    ),
+				    ),
+			    ),
+		    )
+	    );
+
+	    acf_render_field_setting(
+		    $field,
+		    array(
+			    'label'			=> __( 'Default: Muted','cloudflare-stream' ),
+			    'instructions'	=> __( 'Set muted as default for new videos.','cloudflare-stream' ),
+			    'type'			=> 'true_false',
+			    'name'			=> 'default_muted',
+			    'ui'            => 1,
+			    'conditional_logic' => array(
+				    array(
+					    array(
+						    'field' => 'hide_options',
+						    'operator' => '!=',
+						    'value' => '1',
+					    ),
+				    ),
+			    ),
+		    )
+	    );
+
+	    acf_render_field_setting(
+		    $field,
+		    array(
+			    'label'			=> __( 'Default: Controls','cloudflare-stream' ),
+			    'instructions'	=> __( 'Set controls as default for new videos.','cloudflare-stream' ),
+			    'type'			=> 'true_false',
+			    'name'			=> 'default_controls',
+			    'ui'            => 1,
+			    'conditional_logic' => array(
+				    array(
+					    array(
+						    'field' => 'hide_options',
+						    'operator' => '!=',
+						    'value' => '1',
+					    ),
+				    ),
+			    ),
+		    )
+	    );
+
+	    acf_render_field_setting(
+		    $field,
+		    array(
+			    'label'			=> __( 'Default: Loop','cloudflare-stream' ),
+			    'instructions'	=> __( 'Set loop as default for new videos.','cloudflare-stream' ),
+			    'type'			=> 'true_false',
+			    'name'			=> 'default_loop',
+			    'ui'            => 1,
+			    'conditional_logic' => array(
+				    array(
+					    array(
+						    'field' => 'hide_options',
+						    'operator' => '!=',
+						    'value' => '1',
+					    ),
+				    ),
+			    ),
+		    )
+	    );
 
         // To render field settings on other tabs in ACF 6.0+:
         // https://www.advancedcustomfields.com/resources/adding-custom-settings-fields/#moving-field-setting
@@ -159,154 +241,178 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
      * @param array $field The field settings and values.
      * @return void
      */
-    public function render_field( $field ) {
-        $api_token = nsz_decrypt_value(get_option('nsz_cfstream_api_key', ''));
-        $account_id = nsz_decrypt_value(get_option('nsz_cfstream_account_id', ''));
-        $account_email = nsz_decrypt_value(get_option('nsz_cfstream_account_email', ''));
+	public function render_field( $field ) {
+		$api_token = nsz_decrypt_value(get_option('nsz_cfstream_api_key', ''));
+		$account_id = nsz_decrypt_value(get_option('nsz_cfstream_account_id', ''));
+		$account_email = nsz_decrypt_value(get_option('nsz_cfstream_account_email', ''));
 
 
-        if ($api_token && $account_id && $account_email) {
-            $hls = $field['value']['hls'] ?? '';
-            $dash = $field['value']['dash'] ?? '';
-            $thumbnail = $field['value']['thumbnail'] ?? '';
-            $preview = $field['value']['preview'] ?? '';
-            $filename = $field['value']['filename'] ?? '';
-            $muted = $field['value']['muted'] ?? false;
-            $autoplay = $field['value']['autoplay'] ?? false;
-            $loop = $field['value']['loop'] ?? false;
-            $controls = $field['value']['controls'] ?? false;
-            $hide_options = $field['hide_options'] ?? false;
-            $hide_file_info = $field['hide_file_info'] ?? false;
+		if ($api_token && $account_id && $account_email) {
+			$hls = $field['value']['hls'] ?? '';
+			$dash = $field['value']['dash'] ?? '';
+			$thumbnail = $field['value']['thumbnail'] ?? '';
+			$preview = $field['value']['preview'] ?? '';
+			$filename = $field['value']['filename'] ?? '';
 
-            $is_video_uploaded = false;
-            if ($hls || $dash || $thumbnail || $preview) {
-                $is_video_uploaded = true;
-            }
-            ?>
+			// Use default values if no value is set yet
+			$is_new_video = empty($field['value']['hls']) && empty($field['value']['dash']);
 
-            <div class="cloudflare-stream-wrapper">
+			if ($is_new_video) {
+				// Apply defaults for new videos
+				$default_autoplay = $field['default_autoplay'] ?? 0;
+				$default_muted = $field['default_muted'] ?? 0;
+				$default_controls = $field['default_controls'] ?? 1;
+				$default_loop = $field['default_loop'] ?? 0;
 
-                <div class="wrap-upper-nav">
-                    <div class="wrap-browse-field">
-                        <button class="nsz-cloudflare-stream-browse-modal button-primary">Browse Existing Videos</button>
-                        <dialog class="nsz-cloudflare-stream-modal">
-                            <div class="nsz-cloudflare-stream-modal-listing">
+				// If autoplay is default, force muted to be true
+				if ($default_autoplay) {
+					$default_muted = 1;
+				}
 
-                            </div>
-                            <form method="dialog">
-                                <button class="nsz-cloudflare-stream-close-modal button-primary">Close</button>
-                            </form>
-                        </dialog>
-                    </div>
+				$muted = $default_muted;
+				$autoplay = $default_autoplay;
+				$loop = $default_loop;
+				$controls = $default_controls;
+			} else {
+				// Use saved values for existing videos
+				$muted = $field['value']['muted'] ?? false;
+				$autoplay = $field['value']['autoplay'] ?? false;
+				$loop = $field['value']['loop'] ?? false;
+				$controls = $field['value']['controls'] ?? false;
+			}
 
-                    <?php if ($is_video_uploaded) : ?>
-                        <div class="wrap-item cloudflare-video-clear-wrapper">
-                            <button class="nsz-cloudflare-stream-clear-video button-primary" type="button">Clear Video</button>
-                        </div>
-                    <?php endif; ?>
-                </div>
+			$hide_options = $field['hide_options'] ?? false;
+			$hide_file_info = $field['hide_file_info'] ?? false;
 
-                <div class="wrap-upload-field <?php if (!$is_video_uploaded) : ?> active <?php endif; ?>">
-                    <div class="acf-label">
-                        <label for="nsz-cloudflare-stream-file">Choose a video to upload:</label>
-                    </div>
-                    <div class="acf-input">
-                        <input
-                                type="file"
-                                class="nsz-cloudflare-stream-file"
-                                id="nsz-cloudflare-stream-file"
-                                name="<?php echo esc_attr($field['name']) ?>[filename]"
-                                value=""
-                        />
-                    </div>
-                </div>
+			$is_video_uploaded = false;
+			if ($hls || $dash || $thumbnail || $preview) {
+				$is_video_uploaded = true;
+			}
+			?>
 
-                <div class="cloudflare-stream-progress-wrap">
-                    <span>Uploading to Cloudflare... </span>
-                    <progress class="cloudflare-stream-progress-bar" value="0" max="100"></progress>
-                </div>
+			<div class="cloudflare-stream-wrapper">
 
-                <div class="cloudflare-stream-success"> </div>
+				<div class="wrap-upper-nav">
+					<div class="wrap-browse-field">
+						<button class="nsz-cloudflare-stream-browse-modal button-primary">Browse Existing Videos</button>
+						<dialog class="nsz-cloudflare-stream-modal">
+							<div class="nsz-cloudflare-stream-modal-listing">
 
-                <div class="cloudflare-stream-error"> </div>
+							</div>
+							<form method="dialog">
+								<button class="nsz-cloudflare-stream-close-modal button-primary">Close</button>
+							</form>
+						</dialog>
+					</div>
 
-                <div class="cloudflare-video-details <?php if ($is_video_uploaded) : ?> active <?php endif; ?>">
+					<?php if ($is_video_uploaded) : ?>
+						<div class="wrap-item cloudflare-video-clear-wrapper">
+							<button class="nsz-cloudflare-stream-clear-video button-primary" type="button">Clear Video</button>
+						</div>
+					<?php endif; ?>
+				</div>
 
-                    <h4><span class="data-filename-display"><?php echo $filename; ?></span> Details:</h4>
+				<div class="wrap-upload-field <?php if (!$is_video_uploaded) : ?> active <?php endif; ?>">
+					<div class="acf-label">
+						<label for="nsz-cloudflare-stream-file">Choose a video to upload:</label>
+					</div>
+					<div class="acf-input">
+						<input
+								type="file"
+								class="nsz-cloudflare-stream-file"
+								id="nsz-cloudflare-stream-file"
+								name="<?php echo esc_attr($field['name']) ?>[filename]"
+								value=""
+						/>
+					</div>
+				</div>
 
-                    <div class="cloudflare-video-details-info">
-                        <div class="wrap-item wrap-thumbnail">
-                            <img class="cloudflare-video-thumbnail-preview" src="<?php echo $thumbnail ?>" />
-                        </div>
+				<div class="cloudflare-stream-progress-wrap">
+					<span>Uploading to Cloudflare... </span>
+					<progress class="cloudflare-stream-progress-bar" value="0" max="100"></progress>
+				</div>
 
-                        <input class="data-filename" type="hidden" name="<?php echo esc_attr($field['name']) ?>[filename]" value="<?php echo $filename ?>" />
+				<div class="cloudflare-stream-success"> </div>
 
-                        <div class="cloudflare-video-details-options">
+				<div class="cloudflare-stream-error"> </div>
 
-                            <?php if (!$hide_options) : ?>
-                                <div class="cloudflare-video-details-option-holder">
-                                    <div class="wrap-item">
-                                        <div class="acf-label"><label>Muted</label></div>
-                                        <input type="hidden" name="<?php echo esc_attr($field['name']) ?>[muted]" value="0" />
-                                        <input type="checkbox" class="data-muted" name="<?php echo esc_attr($field['name']) ?>[muted]" value="1" <?php if ($muted) : ?> checked <?php endif; ?> />
-                                    </div>
-                                    <div class="wrap-item">
-                                        <div class="acf-label"><label>Autoplay</label></div>
-                                        <input type="hidden" name="<?php echo esc_attr($field['name']) ?>[autoplay]" value="0" />
-                                        <input type="checkbox" class="data-autoplay" name="<?php echo esc_attr($field['name']) ?>[autoplay]" value="1" <?php if ($autoplay) : ?> checked <?php endif; ?> />
-                                    </div>
-                                    <div class="wrap-item">
-                                        <div class="acf-label"><label>Loop</label></div>
-                                        <input type="hidden" name="<?php echo esc_attr($field['name']) ?>[loop]" value="0" />
-                                        <input type="checkbox" class="data-loop" name="<?php echo esc_attr($field['name']) ?>[loop]" value="1" <?php if ($loop) : ?> checked <?php endif; ?> />
-                                    </div>
-                                    <div class="wrap-item">
-                                        <div class="acf-label"><label>Controls</label></div>
-                                        <input type="hidden" name="<?php echo esc_attr($field['name']) ?>[controls]" value="0" />
-                                        <input type="checkbox" class="data-controls" name="<?php echo esc_attr($field['name']) ?>[controls]" value="1" <?php if ($controls) : ?> checked <?php endif; ?> />
-                                    </div>
+				<div class="cloudflare-video-details <?php if ($is_video_uploaded) : ?> active <?php endif; ?>">
 
-                                </div>
-                            <?php endif; ?>
+					<h4><span class="data-filename-display"><?php echo $filename; ?></span> Details:</h4>
 
-                            <?php if (!$hide_file_info) : ?>
-                                <div class="cloudflare-video-details-item-holder">
-                                    <div class="wrap-item wrap-hls">
-                                        <div class="acf-label"><label>HLS Manifest</label></div>
-                                        <input  class="data-hls" type="text" name="<?php echo esc_attr($field['name']) ?>[hls]" value="<?php echo $hls ?>"/>
-                                    </div>
+					<div class="cloudflare-video-details-info">
+						<div class="wrap-item wrap-thumbnail">
+							<img class="cloudflare-video-thumbnail-preview" src="<?php echo $thumbnail ?>" />
+						</div>
 
-                                    <div class="wrap-item wrap-dash">
-                                        <div class="acf-label"><label>Dash Manifest</label></div>
-                                        <input  class="data-dash" type="text" name="<?php echo esc_attr($field['name']) ?>[dash]" value="<?php echo $dash ?>" />
-                                    </div>
+						<input class="data-filename" type="hidden" name="<?php echo esc_attr($field['name']) ?>[filename]" value="<?php echo $filename ?>" />
 
-                                    <div class="wrap-item wrap-thumbnail">
-                                        <div class="acf-label"><label>Thumbnail</label></div>
-                                        <input class="data-thumbnail" type="text" name="<?php echo esc_attr($field['name']) ?>[thumbnail]" value="<?php echo $thumbnail ?>" />
-                                    </div>
+						<div class="cloudflare-video-details-options">
 
-                                    <div class="wrap-item wrap-preview">
-                                        <div class="acf-label"> <label>Preview</label></div>
-                                        <input class="data-preview" type="text" name="<?php echo esc_attr($field['name']) ?>[preview]" value="<?php echo $preview ?>" />
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+							<?php if (!$hide_options) : ?>
+								<div class="cloudflare-video-details-option-holder">
+									<div class="wrap-item">
+										<div class="acf-label"><label>Muted</label></div>
+										<input type="hidden" name="<?php echo esc_attr($field['name']) ?>[muted]" value="0" />
+										<input type="checkbox" class="data-muted" name="<?php echo esc_attr($field['name']) ?>[muted]" value="1" <?php if ($muted) : ?> checked <?php endif; ?> />
+									</div>
+									<div class="wrap-item">
+										<div class="acf-label"><label>Autoplay</label></div>
+										<input type="hidden" name="<?php echo esc_attr($field['name']) ?>[autoplay]" value="0" />
+										<input type="checkbox" class="data-autoplay" name="<?php echo esc_attr($field['name']) ?>[autoplay]" value="1" <?php if ($autoplay) : ?> checked <?php endif; ?> />
+									</div>
+									<div class="wrap-item">
+										<div class="acf-label"><label>Loop</label></div>
+										<input type="hidden" name="<?php echo esc_attr($field['name']) ?>[loop]" value="0" />
+										<input type="checkbox" class="data-loop" name="<?php echo esc_attr($field['name']) ?>[loop]" value="1" <?php if ($loop) : ?> checked <?php endif; ?> />
+									</div>
+									<div class="wrap-item">
+										<div class="acf-label"><label>Controls</label></div>
+										<input type="hidden" name="<?php echo esc_attr($field['name']) ?>[controls]" value="0" />
+										<input type="checkbox" class="data-controls" name="<?php echo esc_attr($field['name']) ?>[controls]" value="1" <?php if ($controls) : ?> checked <?php endif; ?> />
+									</div>
 
-                </div>
+								</div>
+							<?php endif; ?>
 
-            </div>
+							<?php if (!$hide_file_info) : ?>
+								<div class="cloudflare-video-details-item-holder">
+									<div class="wrap-item wrap-hls">
+										<div class="acf-label"><label>HLS Manifest</label></div>
+										<input  class="data-hls" type="text" name="<?php echo esc_attr($field['name']) ?>[hls]" value="<?php echo $hls ?>"/>
+									</div>
 
-            <?php
+									<div class="wrap-item wrap-dash">
+										<div class="acf-label"><label>Dash Manifest</label></div>
+										<input  class="data-dash" type="text" name="<?php echo esc_attr($field['name']) ?>[dash]" value="<?php echo $dash ?>" />
+									</div>
 
-        } else {
-            echo '<p>Cloudflare Stream API Key, Account ID, and Account Email must be set in the 970 Design Video Field settings page.</p>';
-        }
+									<div class="wrap-item wrap-thumbnail">
+										<div class="acf-label"><label>Thumbnail</label></div>
+										<input class="data-thumbnail" type="text" name="<?php echo esc_attr($field['name']) ?>[thumbnail]" value="<?php echo $thumbnail ?>" />
+									</div>
+
+									<div class="wrap-item wrap-preview">
+										<div class="acf-label"> <label>Preview</label></div>
+										<input class="data-preview" type="text" name="<?php echo esc_attr($field['name']) ?>[preview]" value="<?php echo $preview ?>" />
+									</div>
+								</div>
+							<?php endif; ?>
+						</div>
+					</div>
+
+				</div>
+
+			</div>
+
+			<?php
+
+		} else {
+			echo '<p>Cloudflare Stream API Key, Account ID, and Account Email must be set in the 970 Design Video Field settings page.</p>';
+		}
 
 
-    }
+	}
 
     /**
      * Enqueues CSS and JavaScript needed by HTML in the render_field() method.
