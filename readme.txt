@@ -8,7 +8,7 @@ Tags: acf, cloudflare, stream, video, field
 
 Requires at least: 6.4
 
-Tested up to: 6.4
+Tested up to: 6.8.3
 
 Stable tag: 1.5
 
@@ -36,10 +36,8 @@ Yes!  Find out more about ACF here: https://www.advancedcustomfields.com/  You c
 Yes!  Find out more about Cloudflare Stream here: https://www.cloudflare.com/products/cloudflare-stream/  You can find the Cloudflare privacy policy here: https://www.cloudflare.com/privacypolicy/
 = Does this plugin save my Cloudflare credentials? =
 Your Cloudflare credentials are only saved locally on your website.  None of this information is transferred or shared with any service.
-= What does this plugin do? =
-This plugin will upload your video to your Cloudflare account and provide you with HLS and Dash manifests for streaming, a thumbnail, and preview video URL. Please review the Cloudflare documentation for implementation examples: https://developers.cloudflare.com/stream/.  It will also let you define basic options for looping, autoplay, controls and muting the video.
 = Does this plugin display the uploaded video for me? =
-Possibly!  If you are using Vue in your project front end, you can take advantage of our companion Vue Video Stream component, which is available here: https://www.npmjs.com/package/@970design/vue-video-stream
+No, you will need to use a video library of your choosing to display the video.  This plugin will upload your video to your Cloudflare account and provide you with HLS and Dash manifests for streaming, a thumbnail, and preview video URL. Please review the Cloudflare documentation for implementation examples: https://developers.cloudflare.com/stream/
 == Screenshots ==
 1. Settings Page
 2. Field example after uploading video

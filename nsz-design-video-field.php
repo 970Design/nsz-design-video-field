@@ -5,7 +5,7 @@
  *
  * Plugin Name: 970 Design Video Field
  * Description: An Advanced Custom Fields (ACF) Field for Cloudflare Stream.
- * Version:     1.38
+ * Version:     1.39
  * Author:      970Design
  * Author URI:  https://970design.com/
  * License:     GPLv2 or later
@@ -50,3 +50,13 @@ function nsz_design_video_field_settings_link( $links ) {
     return $links;
 }
 
+require 'plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+    'https://github.com/970Design/nsz-design-video-field',
+    __FILE__,
+    'nsz-design-video-field'
+);
+
+$myUpdateChecker->setBranch('master');
