@@ -13,7 +13,7 @@
 	}
 
 	function validateFile(file, error_area) {
-		const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+		const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/mpeg', 'video/x-msvideo'];
 		if (!allowedTypes.includes(file.type)) {
 			error_area.html('Please upload a valid video file (MP4, WebM, or OGG).').show();
 			return false;
