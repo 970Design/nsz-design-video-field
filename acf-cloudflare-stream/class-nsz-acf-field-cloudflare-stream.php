@@ -77,6 +77,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 		    'default_muted' => 0,
 		    'default_controls' => 0,
 		    'default_loop' => 0,
+				'default_play_scrolled_into_view' => 0,
 	    );
 
         /**
@@ -263,6 +264,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 				$default_muted = $field['default_muted'] ?? 0;
 				$default_controls = $field['default_controls'] ?? 1;
 				$default_loop = $field['default_loop'] ?? 0;
+				$default_play_scrolled_into_view = $field['default_play_scrolled_into_view'] ?? 0;
 
 				// If autoplay is default, force muted to be true
 				if ($default_autoplay) {
@@ -272,13 +274,20 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 				$muted = $default_muted;
 				$autoplay = $default_autoplay;
 				$loop = $default_loop;
-				$controls = $default_controls;
+				$play_scrolled_into_view = $default_play_scrolled_into_view;
 			} else {
 				// Use saved values for existing videos
-				$muted = $field['value']['muted'] ?? false;
 				$autoplay = $field['value']['autoplay'] ?? false;
-				$loop = $field['value']['loop'] ?? false;
 				$controls = $field['value']['controls'] ?? false;
+				$play_scrolled_into_view = $field['value']['play_scrolled_into_view'] ?? false;
+
+				if($play_scrolled_into_view) {
+					$loop = true;
+					$muted = true;
+				} else {
+					$loop = $field['value']['loop'] ?? false;
+					$muted = $field['value']['muted'] ?? false;
+				}
 			}
 
 			$hide_options = $field['hide_options'] ?? false;
@@ -371,6 +380,11 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 										<input type="hidden" name="<?php echo esc_attr($field['name']) ?>[controls]" value="0" />
 										<input type="checkbox" class="data-controls" name="<?php echo esc_attr($field['name']) ?>[controls]" value="1" <?php if ($controls) : ?> checked <?php endif; ?> />
 									</div>
+									<div class="wrap-item">
+										<div class="acf-label"><label>Play when scrolled into view</label></div>
+										<input type="hidden" name="<?php echo esc_attr($field['name']) ?>[play_scrolled_into_view]" value="0" />
+										<input type="checkbox" class="data-play-scrolled-into-view" name="<?php echo esc_attr($field['name']) ?>[play_scrolled_into_view]" value="1" <?php if ($play_scrolled_into_view) : ?> checked <?php endif; ?> />
+									</div>
 
 								</div>
 							<?php endif; ?>
@@ -413,6 +427,22 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 
 
 	}
+
+    /**
+     * Force loop and muted to be true when play_scrolled_into_view is true.
+     *
+     * @param mixed $value The field value.
+     * @param int $post_id The post ID.
+     * @param array $field The field array.
+     * @return mixed
+     */
+    public function save_field( $value, $post_id, $field ) {
+        if ( is_array( $value ) && ! empty( $value['play_scrolled_into_view'] ) ) {
+            $value['loop'] = '1';
+						$value['muted'] = '1';
+        }
+        return $value;
+    }
 
     /**
      * Enqueues CSS and JavaScript needed by HTML in the render_field() method.
