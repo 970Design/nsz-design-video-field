@@ -273,6 +273,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 
 				$muted = $default_muted;
 				$autoplay = $default_autoplay;
+				$controls = $default_controls;
 				$loop = $default_loop;
 				$play_scrolled_into_view = $default_play_scrolled_into_view;
 			} else {
