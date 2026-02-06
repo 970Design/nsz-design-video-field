@@ -78,6 +78,62 @@
 		});
 	}
 
+	/**
+	 * Handle play_scrolled_into_view relationship with muted and loop
+	 * When play_scrolled_into_view is checked, muted and loop must be checked and disabled
+	 */
+	function handlePlayScrolledIntoViewRelationship($field) {
+		const $playScrolledCheckbox = $field.find('.data-play-scrolled-into-view');
+		const $mutedCheckbox = $field.find('.data-muted');
+		const $loopCheckbox = $field.find('.data-loop');
+		const $mutedHidden = $field.find('input[type="hidden"][name*="[muted]"]');
+		const $loopHidden = $field.find('input[type="hidden"][name*="[loop]"]');
+
+		// Function to update muted and loop state based on play_scrolled_into_view
+		function updateDependentStates() {
+			if ($playScrolledCheckbox.is(':checked')) {
+				// Check and disable muted and loop checkboxes
+				$mutedCheckbox.prop('checked', true);
+				$loopCheckbox.prop('checked', true);
+				$mutedCheckbox.prop('disabled', true);
+				$loopCheckbox.prop('disabled', true);
+				// Ensure hidden fields have correct values
+				$mutedHidden.val('1');
+				$loopHidden.val('1');
+			} else {
+				// Re-enable muted and loop checkboxes
+				$mutedCheckbox.prop('disabled', false);
+				$loopCheckbox.prop('disabled', false);
+			}
+		}
+
+		// Initialize on load
+		updateDependentStates();
+
+		// Watch for changes to play_scrolled_into_view
+		$playScrolledCheckbox.off('change.playScrolled').on('change.playScrolled', function() {
+			updateDependentStates();
+		});
+
+		// Prevent unchecking muted when play_scrolled_into_view is checked
+		$mutedCheckbox.off('change.playScrolledMuted').on('change.playScrolledMuted', function() {
+			if ($playScrolledCheckbox.is(':checked') && !$(this).is(':checked')) {
+				// Force it back to checked
+				$(this).prop('checked', true);
+				$mutedHidden.val('1');
+			}
+		});
+
+		// Prevent unchecking loop when play_scrolled_into_view is checked
+		$loopCheckbox.off('change.playScrolledLoop').on('change.playScrolledLoop', function() {
+			if ($playScrolledCheckbox.is(':checked') && !$(this).is(':checked')) {
+				// Force it back to checked
+				$(this).prop('checked', true);
+				$loopHidden.val('1');
+			}
+		});
+	}
+
 	function initialize_field($field) {
 
 		const $fileInput = $field.find('.nsz-cloudflare-stream-file');
@@ -89,6 +145,9 @@
 
 		// Initialize autoplay/muted relationship
 		handleAutoplayMutedRelationship($field);
+
+		// Initialize play_scrolled_into_view relationship with muted and loop
+		handlePlayScrolledIntoViewRelationship($field);
 
 		// Function to delete video from Cloudflare Stream
 		function deleteCloudflareVideo(videoId, listItem, cfs_wrap) {
