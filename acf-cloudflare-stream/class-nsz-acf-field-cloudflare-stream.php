@@ -93,16 +93,13 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
                 'error'	=> __( 'Error! Please enter a higher value', 'cloudflare-stream' ),
         );
 
-        $protocol = is_ssl() ? 'https://' : 'http://';
-        $domainName = $_SERVER['HTTP_HOST'] ?? 'localhost';
-
         $plugin_dir = WP_PLUGIN_DIR . '/nsz-design-video-field/nsz-design-video-field.php';
         $plugin_data = get_plugin_data($plugin_dir);
         $plugin_version = $plugin_data['Version'] ?? '1.0';
 
         $this->env = array(
-                'url'     => $protocol.$domainName.'/app/plugins/nsz-design-video-field/acf-cloudflare-stream/', // URL to the acf-cloudflare-stream directory.
-                'version' => $plugin_version, // Replace this with your theme or plugin version constant.
+                'url'     => plugin_dir_url( __FILE__ ),
+                'version' => $plugin_version,
         );
 
         /**
@@ -121,6 +118,21 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         $this->input_admin_enqueue_scripts();
 
         parent::__construct();
+    }
+
+    /**
+     * Returns the decrypted Cloudflare account ID, validated as a 32-char hex string.
+     *
+     * Sends a JSON error and exits if the value is missing or malformed.
+     *
+     * @return string
+     */
+    private function get_cf_account_id() {
+        $account_id = nsz_decrypt_value( get_option( 'nsz_cfstream_account_id', '' ) );
+        if ( empty( $account_id ) || ! preg_match( '/^[a-f0-9]{32}$/', $account_id ) ) {
+            wp_send_json_error( 'Cloudflare Account ID is not configured or is invalid.', 400 );
+        }
+        return $account_id;
     }
 
     /**
@@ -150,20 +162,17 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
             wp_send_json_error( 'Unauthorized', 403 );
         }
 
-        $account_id = nsz_decrypt_value( get_option( 'nsz_cfstream_account_id', '' ) );
+        $account_id = $this->get_cf_account_id();
         $response   = wp_remote_get(
             "https://api.cloudflare.com/client/v4/accounts/{$account_id}/stream",
             array( 'headers' => $this->get_cf_auth_headers(), 'timeout' => 30 )
         );
 
         if ( is_wp_error( $response ) ) {
-            wp_send_json_error( $response->get_error_message() );
+            wp_send_json_error( 'Failed to connect to Cloudflare API.' );
         }
 
-        // Pass the raw Cloudflare JSON through so the existing JS parsing is unchanged.
-        header( 'Content-Type: application/json' );
-        echo wp_remote_retrieve_body( $response );
-        wp_die();
+        $this->send_validated_json( $response );
     }
 
     /**
@@ -176,23 +185,21 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         }
 
         $video_id = sanitize_text_field( $_POST['video_id'] ?? '' );
-        if ( empty( $video_id ) ) {
-            wp_send_json_error( 'Missing video_id', 400 );
+        if ( empty( $video_id ) || ! preg_match( '/^[a-f0-9]{32}$/', $video_id ) ) {
+            wp_send_json_error( 'Invalid video_id', 400 );
         }
 
-        $account_id = nsz_decrypt_value( get_option( 'nsz_cfstream_account_id', '' ) );
+        $account_id = $this->get_cf_account_id();
         $response   = wp_remote_get(
             "https://api.cloudflare.com/client/v4/accounts/{$account_id}/stream/{$video_id}",
             array( 'headers' => $this->get_cf_auth_headers(), 'timeout' => 30 )
         );
 
         if ( is_wp_error( $response ) ) {
-            wp_send_json_error( $response->get_error_message() );
+            wp_send_json_error( 'Failed to connect to Cloudflare API.' );
         }
 
-        header( 'Content-Type: application/json' );
-        echo wp_remote_retrieve_body( $response );
-        wp_die();
+        $this->send_validated_json( $response );
     }
 
     /**
@@ -200,28 +207,26 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
      */
     public function ajax_delete_video() {
         check_ajax_referer( 'nsz_cfstream_ajax', 'nonce' );
-        if ( ! current_user_can( 'edit_posts' ) ) {
+        if ( ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( 'Unauthorized', 403 );
         }
 
         $video_id = sanitize_text_field( $_POST['video_id'] ?? '' );
-        if ( empty( $video_id ) ) {
-            wp_send_json_error( 'Missing video_id', 400 );
+        if ( empty( $video_id ) || ! preg_match( '/^[a-f0-9]{32}$/', $video_id ) ) {
+            wp_send_json_error( 'Invalid video_id', 400 );
         }
 
-        $account_id = nsz_decrypt_value( get_option( 'nsz_cfstream_account_id', '' ) );
+        $account_id = $this->get_cf_account_id();
         $response   = wp_remote_request(
             "https://api.cloudflare.com/client/v4/accounts/{$account_id}/stream/{$video_id}",
             array( 'method' => 'DELETE', 'headers' => $this->get_cf_auth_headers(), 'timeout' => 30 )
         );
 
         if ( is_wp_error( $response ) ) {
-            wp_send_json_error( $response->get_error_message() );
+            wp_send_json_error( 'Failed to connect to Cloudflare API.' );
         }
 
-        header( 'Content-Type: application/json' );
-        echo wp_remote_retrieve_body( $response );
-        wp_die();
+        $this->send_validated_json( $response );
     }
 
     /**
@@ -236,7 +241,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
             wp_send_json_error( 'Unauthorized', 403 );
         }
 
-        $account_id = nsz_decrypt_value( get_option( 'nsz_cfstream_account_id', '' ) );
+        $account_id = $this->get_cf_account_id();
 
         $body = array( 'maxDurationSeconds' => 21600 );
         $file_name = sanitize_text_field( $_POST['file_name'] ?? '' );
@@ -257,12 +262,26 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         );
 
         if ( is_wp_error( $response ) ) {
-            wp_send_json_error( $response->get_error_message() );
+            wp_send_json_error( 'Failed to connect to Cloudflare API.' );
         }
 
-        header( 'Content-Type: application/json' );
-        echo wp_remote_retrieve_body( $response );
-        wp_die();
+        $this->send_validated_json( $response );
+    }
+
+    /**
+     * Validate that a wp_remote response contains valid JSON and send it.
+     *
+     * @param array $response A wp_remote_* response array.
+     */
+    private function send_validated_json( $response ) {
+        $body    = wp_remote_retrieve_body( $response );
+        $decoded = json_decode( $body );
+
+        if ( $decoded === null && json_last_error() !== JSON_ERROR_NONE ) {
+            wp_send_json_error( 'Invalid response from Cloudflare API.' );
+        }
+
+        wp_send_json( $decoded );
     }
 
     /**
@@ -502,14 +521,14 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 
 				<div class="cloudflare-video-details <?php if ($is_video_uploaded) : ?> active <?php endif; ?>">
 
-					<h4><span class="data-filename-display"><?php echo $filename; ?></span> Details:</h4>
+					<h4><span class="data-filename-display"><?php echo esc_html($filename); ?></span> Details:</h4>
 
 					<div class="cloudflare-video-details-info">
 						<div class="wrap-item wrap-thumbnail">
-							<img class="cloudflare-video-thumbnail-preview" src="<?php echo $thumbnail ?>" />
+							<img class="cloudflare-video-thumbnail-preview" src="<?php echo esc_url($thumbnail); ?>" />
 						</div>
 
-						<input class="data-filename" type="hidden" name="<?php echo esc_attr($field['name']) ?>[filename]" value="<?php echo $filename ?>" />
+						<input class="data-filename" type="hidden" name="<?php echo esc_attr($field['name']) ?>[filename]" value="<?php echo esc_attr($filename); ?>" />
 
 						<div class="cloudflare-video-details-options">
 
@@ -548,22 +567,22 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 								<div class="cloudflare-video-details-item-holder">
 									<div class="wrap-item wrap-hls">
 										<div class="acf-label"><label>HLS Manifest</label></div>
-										<input  class="data-hls" type="text" name="<?php echo esc_attr($field['name']) ?>[hls]" value="<?php echo $hls ?>"/>
+										<input  class="data-hls" type="text" name="<?php echo esc_attr($field['name']) ?>[hls]" value="<?php echo esc_attr($hls); ?>"/>
 									</div>
 
 									<div class="wrap-item wrap-dash">
 										<div class="acf-label"><label>Dash Manifest</label></div>
-										<input  class="data-dash" type="text" name="<?php echo esc_attr($field['name']) ?>[dash]" value="<?php echo $dash ?>" />
+										<input  class="data-dash" type="text" name="<?php echo esc_attr($field['name']) ?>[dash]" value="<?php echo esc_attr($dash); ?>" />
 									</div>
 
 									<div class="wrap-item wrap-thumbnail">
 										<div class="acf-label"><label>Thumbnail</label></div>
-										<input class="data-thumbnail" type="text" name="<?php echo esc_attr($field['name']) ?>[thumbnail]" value="<?php echo $thumbnail ?>" />
+										<input class="data-thumbnail" type="text" name="<?php echo esc_attr($field['name']) ?>[thumbnail]" value="<?php echo esc_attr($thumbnail); ?>" />
 									</div>
 
 									<div class="wrap-item wrap-preview">
 										<div class="acf-label"> <label>Preview</label></div>
-										<input class="data-preview" type="text" name="<?php echo esc_attr($field['name']) ?>[preview]" value="<?php echo $preview ?>" />
+										<input class="data-preview" type="text" name="<?php echo esc_attr($field['name']) ?>[preview]" value="<?php echo esc_attr($preview); ?>" />
 									</div>
 								</div>
 							<?php endif; ?>
@@ -584,18 +603,38 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
 	}
 
     /**
-     * Force loop and muted to be true when play_scrolled_into_view is true.
+     * Sanitize field values before they are saved to the database.
      *
      * @param mixed $value The field value.
      * @param int $post_id The post ID.
      * @param array $field The field array.
      * @return mixed
      */
-    public function save_field( $value, $post_id, $field ) {
-        if ( is_array( $value ) && ! empty( $value['play_scrolled_into_view'] ) ) {
-            $value['loop'] = '1';
-					$value['muted'] = '1';
+    public function update_value( $value, $post_id, $field ) {
+        if ( ! is_array( $value ) ) {
+            return $value;
         }
+
+        // Sanitize URLs.
+        $value['hls']       = isset( $value['hls'] )       ? esc_url_raw( $value['hls'] )       : '';
+        $value['dash']      = isset( $value['dash'] )      ? esc_url_raw( $value['dash'] )      : '';
+        $value['thumbnail'] = isset( $value['thumbnail'] ) ? esc_url_raw( $value['thumbnail'] ) : '';
+        $value['preview']   = isset( $value['preview'] )   ? esc_url_raw( $value['preview'] )   : '';
+
+        // Sanitize text.
+        $value['filename'] = isset( $value['filename'] ) ? sanitize_text_field( $value['filename'] ) : '';
+
+        // Normalize boolean options to '0' or '1'.
+        foreach ( array( 'autoplay', 'muted', 'controls', 'loop', 'play_scrolled_into_view' ) as $opt ) {
+            $value[ $opt ] = empty( $value[ $opt ] ) ? '0' : '1';
+        }
+
+        // Force loop and muted when play_scrolled_into_view is enabled.
+        if ( $value['play_scrolled_into_view'] === '1' ) {
+            $value['loop']  = '1';
+            $value['muted'] = '1';
+        }
+
         return $value;
     }
 

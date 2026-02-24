@@ -102,8 +102,8 @@ function nsz_design_video_field_settings_page() {
             wp_die(__('You do not have sufficient permissions to perform this action.'), 403);
         }
 
-        $last_update = get_option('nsz_settings_last_update', 0);
-        if (time() - $last_update < 5) {
+        $rate_key = 'nsz_settings_rate_' . get_current_user_id();
+        if ( get_transient( $rate_key ) ) {
             wp_die(__('Please wait a few seconds before submitting again.'), 403);
         }
 
@@ -141,7 +141,7 @@ function nsz_design_video_field_settings_page() {
                 : '';
         update_option($nsz_cfstream_account_email_field, $nsz_cfstream_account_email_value);
 
-        update_option('nsz_settings_last_update', time());
+        set_transient( $rate_key, true, 5 );
 
         add_settings_error(
                 'nsz_video_settings',
@@ -181,7 +181,6 @@ function nsz_design_video_field_settings_page() {
                     <div class="nsz-design-video-row">
                         <div>
                             <label><?php esc_html_e('Authentication Type:'); ?> <span class="required">*</span></label>
-                            <br><br>
                             <label style="margin-right: 1.5rem;">
                                 <input
                                     type="radio"

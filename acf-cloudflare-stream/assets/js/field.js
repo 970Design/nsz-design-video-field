@@ -256,7 +256,7 @@
 									minute: '2-digit',
 									hour12: true
 								}).toLowerCase();
-								let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div><strong>File:</strong> ' + video.meta.name + ' <br /><strong>Duration:</strong> ' + video.duration + 'sec <br /><strong>Uploaded:</strong> ' + formattedDate + '<br /><button style="margin-right: 1.25rem; margin-top: .35rem;" class="button-primary nsz-select-video">Select</button><button style="margin-top: .35rem;" class="button-secondary nsz-delete-video">Delete</button></div></li>');
+								let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + sanitizeHTML(video.uid) + '"><img src="' + sanitizeHTML(video.thumbnail) + '" alt="' + sanitizeHTML(video.meta.name) + '"><div><strong>File:</strong> ' + sanitizeHTML(video.meta.name) + ' <br /><strong>Duration:</strong> ' + sanitizeHTML(String(video.duration)) + 'sec <br /><strong>Uploaded:</strong> ' + sanitizeHTML(formattedDate) + '<br /><button style="margin-right: 1.25rem; margin-top: .35rem;" class="button-primary nsz-select-video">Select</button><button style="margin-top: .35rem;" class="button-secondary nsz-delete-video">Delete</button></div></li>');
 
 								list_item.find('.nsz-delete-video').on('click', function (e) {
 									e.preventDefault();
@@ -270,7 +270,7 @@
 									cfs_wrap.find('.data-thumbnail').val(video.thumbnail);
 									cfs_wrap.find('.data-preview').val(video.preview);
 									cfs_wrap.find('.data-filename').val(video.meta.name);
-									cfs_wrap.find('.data-filename-display').html(video.meta.name);
+									cfs_wrap.find('.data-filename-display').text(video.meta.name);
 									cfs_wrap.find('.cloudflare-video-details').show();
 									cfs_wrap.find('.cloudflare-video-thumbnail-preview').attr('src', video.thumbnail);
 									cfs_wrap.find('.wrap-upload-field').hide();
@@ -436,7 +436,7 @@
 								thumbnail_input.val(data.result.thumbnail);
 								preview_input.val(data.result.preview);
 								filename_input.val(data.result.meta.name);
-								filename_display.html(data.result.meta.name);
+								filename_display.text(data.result.meta.name);
 								video_details.show();
 								video_thumbnail.attr('src', data.result.thumbnail);
 
