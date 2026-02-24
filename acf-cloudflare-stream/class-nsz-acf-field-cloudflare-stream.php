@@ -112,15 +112,163 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
          */
         $this->preview_image = $this->env['url'] . '/assets/images/field-preview-custom.png';
 
+        // Register server-side AJAX proxies for Cloudflare API calls.
+        add_action( 'wp_ajax_nsz_cfstream_list_videos',      array( $this, 'ajax_list_videos' ) );
+        add_action( 'wp_ajax_nsz_cfstream_get_video',        array( $this, 'ajax_get_video' ) );
+        add_action( 'wp_ajax_nsz_cfstream_delete_video',     array( $this, 'ajax_delete_video' ) );
+        add_action( 'wp_ajax_nsz_cfstream_create_upload_url', array( $this, 'ajax_create_upload_url' ) );
+
         $this->input_admin_enqueue_scripts();
 
         parent::__construct();
     }
 
     /**
+     * Returns auth headers array suitable for wp_remote_* calls.
+     *
+     * @return array
+     */
+    private function get_cf_auth_headers() {
+        $auth_type = get_option( 'nsz_cfstream_auth_type', 'global_api_key' );
+        if ( $auth_type === 'api_token' ) {
+            return array(
+                'Authorization' => 'Bearer ' . nsz_decrypt_value( get_option( 'nsz_cfstream_api_key', '' ) ),
+            );
+        }
+        return array(
+            'X-Auth-Email' => nsz_decrypt_value( get_option( 'nsz_cfstream_account_email', '' ) ),
+            'X-Auth-Key'   => nsz_decrypt_value( get_option( 'nsz_cfstream_global_api_key', '' ) ),
+        );
+    }
+
+    /**
+     * AJAX proxy: list all videos in the account.
+     */
+    public function ajax_list_videos() {
+        check_ajax_referer( 'nsz_cfstream_ajax', 'nonce' );
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
+        $account_id = nsz_decrypt_value( get_option( 'nsz_cfstream_account_id', '' ) );
+        $response   = wp_remote_get(
+            "https://api.cloudflare.com/client/v4/accounts/{$account_id}/stream",
+            array( 'headers' => $this->get_cf_auth_headers(), 'timeout' => 30 )
+        );
+
+        if ( is_wp_error( $response ) ) {
+            wp_send_json_error( $response->get_error_message() );
+        }
+
+        // Pass the raw Cloudflare JSON through so the existing JS parsing is unchanged.
+        header( 'Content-Type: application/json' );
+        echo wp_remote_retrieve_body( $response );
+        wp_die();
+    }
+
+    /**
+     * AJAX proxy: fetch a single video's details.
+     */
+    public function ajax_get_video() {
+        check_ajax_referer( 'nsz_cfstream_ajax', 'nonce' );
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
+        $video_id = sanitize_text_field( $_POST['video_id'] ?? '' );
+        if ( empty( $video_id ) ) {
+            wp_send_json_error( 'Missing video_id', 400 );
+        }
+
+        $account_id = nsz_decrypt_value( get_option( 'nsz_cfstream_account_id', '' ) );
+        $response   = wp_remote_get(
+            "https://api.cloudflare.com/client/v4/accounts/{$account_id}/stream/{$video_id}",
+            array( 'headers' => $this->get_cf_auth_headers(), 'timeout' => 30 )
+        );
+
+        if ( is_wp_error( $response ) ) {
+            wp_send_json_error( $response->get_error_message() );
+        }
+
+        header( 'Content-Type: application/json' );
+        echo wp_remote_retrieve_body( $response );
+        wp_die();
+    }
+
+    /**
+     * AJAX proxy: delete a video.
+     */
+    public function ajax_delete_video() {
+        check_ajax_referer( 'nsz_cfstream_ajax', 'nonce' );
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
+        $video_id = sanitize_text_field( $_POST['video_id'] ?? '' );
+        if ( empty( $video_id ) ) {
+            wp_send_json_error( 'Missing video_id', 400 );
+        }
+
+        $account_id = nsz_decrypt_value( get_option( 'nsz_cfstream_account_id', '' ) );
+        $response   = wp_remote_request(
+            "https://api.cloudflare.com/client/v4/accounts/{$account_id}/stream/{$video_id}",
+            array( 'method' => 'DELETE', 'headers' => $this->get_cf_auth_headers(), 'timeout' => 30 )
+        );
+
+        if ( is_wp_error( $response ) ) {
+            wp_send_json_error( $response->get_error_message() );
+        }
+
+        header( 'Content-Type: application/json' );
+        echo wp_remote_retrieve_body( $response );
+        wp_die();
+    }
+
+    /**
+     * AJAX proxy: create a pre-authorized direct upload URL.
+     *
+     * Returns a short-lived Cloudflare-issued upload URL so the browser can
+     * upload directly without ever sending credentials client-side.
+     */
+    public function ajax_create_upload_url() {
+        check_ajax_referer( 'nsz_cfstream_ajax', 'nonce' );
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Unauthorized', 403 );
+        }
+
+        $account_id = nsz_decrypt_value( get_option( 'nsz_cfstream_account_id', '' ) );
+
+        $body = array( 'maxDurationSeconds' => 21600 );
+        $file_name = sanitize_text_field( $_POST['file_name'] ?? '' );
+        if ( ! empty( $file_name ) ) {
+            $body['meta'] = array( 'name' => $file_name );
+        }
+
+        $response   = wp_remote_post(
+            "https://api.cloudflare.com/client/v4/accounts/{$account_id}/stream/direct_upload",
+            array(
+                'headers' => array_merge(
+                    $this->get_cf_auth_headers(),
+                    array( 'Content-Type' => 'application/json' )
+                ),
+                'body'    => json_encode( $body ),
+                'timeout' => 30,
+            )
+        );
+
+        if ( is_wp_error( $response ) ) {
+            wp_send_json_error( $response->get_error_message() );
+        }
+
+        header( 'Content-Type: application/json' );
+        echo wp_remote_retrieve_body( $response );
+        wp_die();
+    }
+
+    /**
      * Settings to display when users configure a field of this type.
      *
-     * These settings appear on the ACF “Edit Field Group” admin page when
+     * These settings appear on the ACF "Edit Field Group" admin page when
      * setting up the field.
      *
      * @param array $field
@@ -243,12 +391,18 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
      * @return void
      */
 	public function render_field( $field ) {
-		$api_token = nsz_decrypt_value(get_option('nsz_cfstream_api_key', ''));
+		$auth_type  = get_option('nsz_cfstream_auth_type', 'global_api_key');
 		$account_id = nsz_decrypt_value(get_option('nsz_cfstream_account_id', ''));
-		$account_email = nsz_decrypt_value(get_option('nsz_cfstream_account_email', ''));
 
+		if ($auth_type === 'api_token') {
+			$credentials_valid = nsz_decrypt_value(get_option('nsz_cfstream_api_key', '')) && $account_id;
+		} else {
+			$credentials_valid = nsz_decrypt_value(get_option('nsz_cfstream_global_api_key', ''))
+				&& $account_id
+				&& nsz_decrypt_value(get_option('nsz_cfstream_account_email', ''));
+		}
 
-		if ($api_token && $account_id && $account_email) {
+		if ($credentials_valid) {
 			$hls = $field['value']['hls'] ?? '';
 			$dash = $field['value']['dash'] ?? '';
 			$thumbnail = $field['value']['thumbnail'] ?? '';
@@ -440,7 +594,7 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
     public function save_field( $value, $post_id, $field ) {
         if ( is_array( $value ) && ! empty( $value['play_scrolled_into_view'] ) ) {
             $value['loop'] = '1';
-						$value['muted'] = '1';
+					$value['muted'] = '1';
         }
         return $value;
     }
@@ -457,13 +611,6 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         $version = $this->env['version'];
 
         wp_register_script(
-                'nsz-cloudflare-stream-tus',
-                "{$url}assets/js/tus.min.js",
-                array( 'acf-input' ),
-                $version
-        );
-
-        wp_register_script(
                 'nsz-cloudflare-stream',
                 "{$url}assets/js/field.js",
                 array( 'acf-input' ),
@@ -477,19 +624,13 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
                 $version
         );
 
-        wp_enqueue_script( 'nsz-cloudflare-stream-tus' );
         wp_enqueue_script( 'nsz-cloudflare-stream' );
         wp_enqueue_style( 'nsz-cloudflare-stream' );
 
-        $api_token = nsz_decrypt_value(get_option('nsz_cfstream_api_key', ''));
-        $account_id = nsz_decrypt_value(get_option('nsz_cfstream_account_id', ''));
-        $account_email = nsz_decrypt_value(get_option('nsz_cfstream_account_email', ''));
-
-
+        // No credentials are passed to the browser — all Cloudflare API calls are
+        // proxied through WP AJAX. Uploads use a server-issued direct upload URL.
         $params = array(
-                'api_token' => $api_token,
-                'account_id' => $account_id,
-                'account_email' => $account_email,
+                'nonce' => wp_create_nonce( 'nsz_cfstream_ajax' ),
         );
 
         wp_localize_script( 'nsz-cloudflare-stream', 'nsz_cloudflare_stream', $params );

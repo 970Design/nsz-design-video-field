@@ -27,11 +27,14 @@
 		return true;
 	}
 
-	function validateResponse(response) {
-		if (!response || !response.result) {
-			throw new Error('Invalid response format');
+	/**
+	 * Extract a human-readable error from a Cloudflare API response object.
+	 */
+	function cfErrorMessage(data) {
+		if (data && data.errors && data.errors.length) {
+			return data.errors[0].message || JSON.stringify(data.errors[0]);
 		}
-		return response;
+		return 'Unknown error';
 	}
 
 	/**
@@ -43,36 +46,27 @@
 		const $mutedCheckbox = $field.find('.data-muted');
 		const $mutedHidden = $field.find('input[type="hidden"][name*="[muted]"]');
 
-		// Function to update muted state based on autoplay
 		function updateMutedState() {
 			if ($autoplayCheckbox.is(':checked')) {
-				// Check and disable muted checkbox
 				$mutedCheckbox.prop('checked', true);
 				$mutedCheckbox.prop('disabled', true);
-				// Ensure hidden field has correct value
 				$mutedHidden.val('1');
 			} else {
-				// Re-enable muted checkbox
 				$mutedCheckbox.prop('disabled', false);
 			}
 		}
 
-		// Initialize on load
 		updateMutedState();
 
-		// Watch for changes to autoplay
 		$autoplayCheckbox.off('change.autoplay').on('change.autoplay', function() {
 			updateMutedState();
 		});
 
-		// Prevent unchecking muted when autoplay is checked
 		$mutedCheckbox.off('change.muted').on('change.muted', function() {
 			if ($autoplayCheckbox.is(':checked') && !$(this).is(':checked')) {
-				// Force it back to checked
 				$(this).prop('checked', true);
 				$mutedHidden.val('1');
 			} else {
-				// Update hidden field based on checkbox state
 				$mutedHidden.val($(this).is(':checked') ? '1' : '0');
 			}
 		});
@@ -89,45 +83,35 @@
 		const $mutedHidden = $field.find('input[type="hidden"][name*="[muted]"]');
 		const $loopHidden = $field.find('input[type="hidden"][name*="[loop]"]');
 
-		// Function to update muted and loop state based on play_scrolled_into_view
 		function updateDependentStates() {
 			if ($playScrolledCheckbox.is(':checked')) {
-				// Check and disable muted and loop checkboxes
 				$mutedCheckbox.prop('checked', true);
 				$loopCheckbox.prop('checked', true);
 				$mutedCheckbox.prop('disabled', true);
 				$loopCheckbox.prop('disabled', true);
-				// Ensure hidden fields have correct values
 				$mutedHidden.val('1');
 				$loopHidden.val('1');
 			} else {
-				// Re-enable muted and loop checkboxes
 				$mutedCheckbox.prop('disabled', false);
 				$loopCheckbox.prop('disabled', false);
 			}
 		}
 
-		// Initialize on load
 		updateDependentStates();
 
-		// Watch for changes to play_scrolled_into_view
 		$playScrolledCheckbox.off('change.playScrolled').on('change.playScrolled', function() {
 			updateDependentStates();
 		});
 
-		// Prevent unchecking muted when play_scrolled_into_view is checked
 		$mutedCheckbox.off('change.playScrolledMuted').on('change.playScrolledMuted', function() {
 			if ($playScrolledCheckbox.is(':checked') && !$(this).is(':checked')) {
-				// Force it back to checked
 				$(this).prop('checked', true);
 				$mutedHidden.val('1');
 			}
 		});
 
-		// Prevent unchecking loop when play_scrolled_into_view is checked
 		$loopCheckbox.off('change.playScrolledLoop').on('change.playScrolledLoop', function() {
 			if ($playScrolledCheckbox.is(':checked') && !$(this).is(':checked')) {
-				// Force it back to checked
 				$(this).prop('checked', true);
 				$loopHidden.val('1');
 			}
@@ -143,13 +127,10 @@
 
 		$fileInput.off('change');
 
-		// Initialize autoplay/muted relationship
 		handleAutoplayMutedRelationship($field);
-
-		// Initialize play_scrolled_into_view relationship with muted and loop
 		handlePlayScrolledIntoViewRelationship($field);
 
-		// Function to delete video from Cloudflare Stream
+		// Delete a video via WP AJAX proxy
 		function deleteCloudflareVideo(videoId, listItem, cfs_wrap) {
 			const videoName = sanitizeHTML(listItem.find('strong').text());
 			if (!videoId || !window.confirm(`Are you sure you want to delete "${videoName}"?`)) {
@@ -157,30 +138,27 @@
 			}
 
 			$.ajax({
-				type: "DELETE",
-				url: `https://api.cloudflare.com/client/v4/accounts/${nsz_cloudflare_stream.account_id}/stream/${videoId}`,
-				headers: {
-					"Authorization": `Bearer ${nsz_cloudflare_stream.api_token}`,
-					"X-Auth-Email": nsz_cloudflare_stream.account_email,
-					"X-Auth-Key": nsz_cloudflare_stream.api_token
+				type: "POST",
+				url: ajaxurl,
+				data: {
+					action:   'nsz_cfstream_delete_video',
+					nonce:    nsz_cloudflare_stream.nonce,
+					video_id: videoId
 				},
 				timeout: 30000,
 				success: function(response) {
-					try {
-						const validatedResponse = validateResponse(response);
-						if (validatedResponse.success) {
-							listItem.remove();
-							cfs_wrap.find('.cloudflare-stream-success')
-								.html('Video deleted successfully')
-								.show()
-								.delay(3000)
-								.fadeOut();
-						}
-					} catch(e) {
+					if (!response || !response.success) {
 						cfs_wrap.find('.cloudflare-stream-error')
-							.html('Invalid server response')
+							.html('Error deleting video: ' + cfErrorMessage(response))
 							.show();
+						return;
 					}
+					listItem.remove();
+					cfs_wrap.find('.cloudflare-stream-success')
+						.html('Video deleted successfully')
+						.show()
+						.delay(3000)
+						.fadeOut();
 				},
 				error: function(error) {
 					console.error(error);
@@ -191,11 +169,6 @@
 			});
 		}
 
-
-		/**
-		 * $field is a jQuery object wrapping field elements in the editor.
-		 */
-
 		$closeModal.on('click', function(e) {
 			e.preventDefault();
 			$(this).closest('.cloudflare-stream-wrapper')
@@ -203,6 +176,7 @@
 				.attr('open', false);
 		});
 
+		// Browse existing videos via WP AJAX proxy
 		$browseModal.on('click', function (e) {
 			e.preventDefault();
 
@@ -216,126 +190,111 @@
 			modalListing.before(searchBox);
 
 			$.ajax({
-				type: "GET",
-				url: 'https://api.cloudflare.com/client/v4/accounts/' + nsz_cloudflare_stream.account_id + '/stream/',
-				headers: {
-					"Authorization": "Bearer " + nsz_cloudflare_stream.api_token,
-					"X-Auth-Email": nsz_cloudflare_stream.account_email,
-					"X-Auth-Key": nsz_cloudflare_stream.api_token
+				type: "POST",
+				url: ajaxurl,
+				data: {
+					action: 'nsz_cfstream_list_videos',
+					nonce:  nsz_cloudflare_stream.nonce
 				},
 				timeout: 30000,
 				success: function (data) {
+					if (!data || !data.success) {
+						error_area.html('Cloudflare API error: ' + cfErrorMessage(data)).show();
+						return;
+					}
 
-					try {
-						const validatedData = validateResponse(data);
+					if (data.result.length) {
+						let video_list = cfs_wrap.find('.nsz-cloudflare-stream-modal-listing');
+						video_list.html('');
 
-						if (data.result.length) {
-							let video_list = cfs_wrap.find('.nsz-cloudflare-stream-modal-listing');
-							video_list.html('');
+						searchBox.on('input', function() {
+							const searchTerm = $(this).val().toLowerCase();
+							const filteredResults = data.result.filter(video =>
+								video.meta.name.toLowerCase().includes(searchTerm)
+							);
 
-							// Add the search handler
-							searchBox.on('input', function() {
-								const searchTerm = $(this).val().toLowerCase();
-								const filteredResults = data.result.filter(video =>
-									video.meta.name.toLowerCase().includes(searchTerm)
-								);
+							currentPage = 1;
+							const totalFilteredPages = Math.ceil(filteredResults.length / itemsPerPage);
 
-								// Recalculate pagination with filtered results
-								currentPage = 1;
-								const totalFilteredPages = Math.ceil(filteredResults.length / itemsPerPage);
-
-								// Update pagination controls
-								paginationContainer.html('');
-								for (let i = 1; i <= totalFilteredPages; i++) {
-									const pageButton = $(`<button class="button-${i === currentPage ? 'primary' : 'secondary'} page-button ${i === currentPage ? 'active' : ''}">${i}</button>`);
-									pageButton.on('click', function(e) {
-										e.preventDefault();
-										currentPage = i;
-										displayVideosForPage(currentPage, filteredResults);
-										paginationContainer.find('.page-button').removeClass('active button-primary').addClass('button-secondary');
-										$(this).removeClass('button-secondary').addClass('active button-primary');
-									});
-									paginationContainer.append(pageButton);
-								}
-
-								// Display filtered results
-								displayVideosForPage(1, filteredResults);
-							});
-
-							// Remove any existing pagination controls first
-							cfs_wrap.find('.nsz-cloudflare-stream-pagination-controls').remove();
-
-							// Create pagination controls
-							let paginationContainer = $('<div class="nsz-cloudflare-stream-pagination-controls"></div>');
-							let currentPage = 1;
-							const itemsPerPage = 50;
-							const totalPages = Math.ceil(data.result.length / itemsPerPage);
-
-							// Function to display videos for current page
-							function displayVideosForPage(pageNum, results = data.result) {
-								video_list.html('');
-								const startIndex = (pageNum - 1) * itemsPerPage;
-								const endIndex = Math.min(startIndex + itemsPerPage, results.length);
-
-								for (let i = startIndex; i < endIndex; i++) {
-									const video = results[i];
-									let uploadDate = new Date(video.uploaded);
-									let formattedDate = uploadDate.toLocaleDateString('en-US', {
-										month: 'numeric',
-										day: 'numeric',
-										year: 'numeric'
-									}) + ' ' + uploadDate.toLocaleTimeString('en-US', {
-										hour: 'numeric',
-										minute: '2-digit',
-										hour12: true
-									}).toLowerCase();
-									let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div><strong>File:</strong> ' + video.meta.name + ' <br /><strong>Duration:</strong> ' + video.duration + 'sec <br /><strong>Uploaded:</strong> ' + formattedDate + '<br /><button style="margin-right: 1.25rem; margin-top: .35rem;" class="button-primary nsz-select-video">Select</button><button style="margin-top: .35rem;" class="button-secondary nsz-delete-video">Delete</button></div></li>');
-
-									// Add the delete button click handler
-									list_item.find('.nsz-delete-video').on('click', function (e) {
-										e.preventDefault();
-										deleteCloudflareVideo(video.uid, list_item, cfs_wrap);
-									});
-
-									list_item.find('.nsz-select-video').on('click', function (e) {
-										e.preventDefault();
-										cfs_wrap.find('.data-hls').val(video.playback.hls);
-										cfs_wrap.find('.data-dash').val(video.playback.dash);
-										cfs_wrap.find('.data-thumbnail').val(video.thumbnail);
-										cfs_wrap.find('.data-preview').val(video.preview);
-										cfs_wrap.find('.data-filename').val(video.meta.name);
-										cfs_wrap.find('.data-filename-display').html(video.meta.name);
-										cfs_wrap.find('.cloudflare-video-details').show();
-										cfs_wrap.find('.cloudflare-video-thumbnail-preview').attr('src', video.thumbnail);
-										cfs_wrap.find('.wrap-upload-field').hide();
-										cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', false);
-									});
-
-									video_list.append(list_item);
-								}
-							}
-
-							// Create pagination buttons
-							for (let i = 1; i <= totalPages; i++) {
+							paginationContainer.html('');
+							for (let i = 1; i <= totalFilteredPages; i++) {
 								const pageButton = $(`<button class="button-${i === currentPage ? 'primary' : 'secondary'} page-button ${i === currentPage ? 'active' : ''}">${i}</button>`);
-								pageButton.on('click', function (e) {
+								pageButton.on('click', function(e) {
 									e.preventDefault();
 									currentPage = i;
-									displayVideosForPage(currentPage);
-									// Update button classes when switching pages
+									displayVideosForPage(currentPage, filteredResults);
 									paginationContainer.find('.page-button').removeClass('active button-primary').addClass('button-secondary');
 									$(this).removeClass('button-secondary').addClass('active button-primary');
 								});
 								paginationContainer.append(pageButton);
 							}
 
-							// Display first page and add pagination controls
-							displayVideosForPage(currentPage);
-							video_list.after(paginationContainer);
+							displayVideosForPage(1, filteredResults);
+						});
 
+						cfs_wrap.find('.nsz-cloudflare-stream-pagination-controls').remove();
+
+						let paginationContainer = $('<div class="nsz-cloudflare-stream-pagination-controls"></div>');
+						let currentPage = 1;
+						const itemsPerPage = 50;
+						const totalPages = Math.ceil(data.result.length / itemsPerPage);
+
+						function displayVideosForPage(pageNum, results = data.result) {
+							video_list.html('');
+							const startIndex = (pageNum - 1) * itemsPerPage;
+							const endIndex = Math.min(startIndex + itemsPerPage, results.length);
+
+							for (let i = startIndex; i < endIndex; i++) {
+								const video = results[i];
+								let uploadDate = new Date(video.uploaded);
+								let formattedDate = uploadDate.toLocaleDateString('en-US', {
+									month: 'numeric',
+									day: 'numeric',
+									year: 'numeric'
+								}) + ' ' + uploadDate.toLocaleTimeString('en-US', {
+									hour: 'numeric',
+									minute: '2-digit',
+									hour12: true
+								}).toLowerCase();
+								let list_item = $('<li class="nsz-cloudflare-stream-modal-item" data-video-id="' + video.uid + '"><img src="' + video.thumbnail + '" alt="' + video.meta.name + '"><div><strong>File:</strong> ' + video.meta.name + ' <br /><strong>Duration:</strong> ' + video.duration + 'sec <br /><strong>Uploaded:</strong> ' + formattedDate + '<br /><button style="margin-right: 1.25rem; margin-top: .35rem;" class="button-primary nsz-select-video">Select</button><button style="margin-top: .35rem;" class="button-secondary nsz-delete-video">Delete</button></div></li>');
+
+								list_item.find('.nsz-delete-video').on('click', function (e) {
+									e.preventDefault();
+									deleteCloudflareVideo(video.uid, list_item, cfs_wrap);
+								});
+
+								list_item.find('.nsz-select-video').on('click', function (e) {
+									e.preventDefault();
+									cfs_wrap.find('.data-hls').val(video.playback.hls);
+									cfs_wrap.find('.data-dash').val(video.playback.dash);
+									cfs_wrap.find('.data-thumbnail').val(video.thumbnail);
+									cfs_wrap.find('.data-preview').val(video.preview);
+									cfs_wrap.find('.data-filename').val(video.meta.name);
+									cfs_wrap.find('.data-filename-display').html(video.meta.name);
+									cfs_wrap.find('.cloudflare-video-details').show();
+									cfs_wrap.find('.cloudflare-video-thumbnail-preview').attr('src', video.thumbnail);
+									cfs_wrap.find('.wrap-upload-field').hide();
+									cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', false);
+								});
+
+								video_list.append(list_item);
+							}
 						}
-					} catch(e) {
-						error_area.html('Invalid server response').show();
+
+						for (let i = 1; i <= totalPages; i++) {
+							const pageButton = $(`<button class="button-${i === currentPage ? 'primary' : 'secondary'} page-button ${i === currentPage ? 'active' : ''}">${i}</button>`);
+							pageButton.on('click', function (e) {
+								e.preventDefault();
+								currentPage = i;
+								displayVideosForPage(currentPage);
+								paginationContainer.find('.page-button').removeClass('active button-primary').addClass('button-secondary');
+								$(this).removeClass('button-secondary').addClass('active button-primary');
+							});
+							paginationContainer.append(pageButton);
+						}
+
+						displayVideosForPage(currentPage);
+						video_list.after(paginationContainer);
 					}
 
 					cfs_wrap.find('.nsz-cloudflare-stream-modal').attr('open', true);
@@ -346,7 +305,6 @@
 				}
 			});
 		});
-
 
 		$clearVideo.on('click', function (e) {
 			let cfs_wrap = $(this).closest('.cloudflare-stream-wrapper');
@@ -381,111 +339,98 @@
 				return;
 			}
 
-			let video_id = null;
-
-			let hls_input = cfs_wrap.find('.data-hls');
-			let dash_input = cfs_wrap.find('.data-dash');
-			let thumbnail_input = cfs_wrap.find('.data-thumbnail');
-			let preview_input = cfs_wrap.find('.data-preview');
-			let filename_input = cfs_wrap.find('.data-filename');
-			let video_details = cfs_wrap.find('.cloudflare-video-details');
-			let filename_display = cfs_wrap.find('.data-filename-display');
-
-			let success_area = cfs_wrap.find('.cloudflare-stream-success');
-			let progress_wrap = cfs_wrap.find('.cloudflare-stream-progress-wrap');
-			let progress_bar = cfs_wrap.find('.cloudflare-stream-progress-bar');
-			let video_thumbnail = cfs_wrap.find('.cloudflare-video-thumbnail-preview');
-			let video_upload = cfs_wrap.find('.wrap-upload-field');
-
-			error_area.html('').hide();
-			success_area.html('').hide();
-
 			if (!file.type.includes('video')) {
 				error_area.html('Please upload a video file.').show();
 				return;
 			}
 
+			let hls_input       = cfs_wrap.find('.data-hls');
+			let dash_input      = cfs_wrap.find('.data-dash');
+			let thumbnail_input = cfs_wrap.find('.data-thumbnail');
+			let preview_input   = cfs_wrap.find('.data-preview');
+			let filename_input  = cfs_wrap.find('.data-filename');
+			let video_details   = cfs_wrap.find('.cloudflare-video-details');
+			let filename_display = cfs_wrap.find('.data-filename-display');
+			let success_area    = cfs_wrap.find('.cloudflare-stream-success');
+			let progress_wrap   = cfs_wrap.find('.cloudflare-stream-progress-wrap');
+			let progress_bar    = cfs_wrap.find('.cloudflare-stream-progress-bar');
+			let video_thumbnail = cfs_wrap.find('.cloudflare-video-thumbnail-preview');
+			let video_upload    = cfs_wrap.find('.wrap-upload-field');
+
+			error_area.html('').hide();
+			success_area.html('').hide();
+
 			$field.data('isUploading', true);
 
-			let maxRetries = 3;
-			let currentRetry = 0;
+			// Step 1: Ask the server for a pre-authorized direct upload URL.
+			// Keeps all credentials server-side; the returned uploadURL can be
+			// used from the browser without any auth headers.
+			success_area.html('Preparing upload...').show();
 
-			let upload = new tus.Upload(file, {
-				endpoint: `https://api.cloudflare.com/client/v4/accounts/${nsz_cloudflare_stream.account_id}/stream`,
-				retryDelays: [0, 3000, 5000, 10000],
-				metadata: {
-					name: file.name,
-					filetype: file.type,
+			$.ajax({
+				type: "POST",
+				url: ajaxurl,
+				data: {
+					action:    'nsz_cfstream_create_upload_url',
+					nonce:     nsz_cloudflare_stream.nonce,
+					file_name: file.name
 				},
-				headers: {
-					"Authorization": "Bearer " + nsz_cloudflare_stream.api_token,
-					"X-Auth-Email": nsz_cloudflare_stream.account_email,
-					"X-Auth-Key": nsz_cloudflare_stream.api_token
-				},
-				uploadSize: file.size,
-				chunkSize: 50 * 1024 * 1024,
-				onError: function (error) {
-					currentRetry++;
+				timeout: 30000,
+				success: function (cfData) {
+					if (!cfData || !cfData.result || !cfData.result.uploadURL) {
+						$field.data('isUploading', false);
+						success_area.hide();
+						error_area.html('Failed to initialize upload: ' + cfErrorMessage(cfData)).show();
+						return;
+					}
 
-					// Check if max retries reached or if it's a fatal error
-					if (currentRetry > maxRetries ||
-						error.name === 'AuthError' ||
-						error.name === 'NotFoundError') {
+					success_area.hide();
 
+					const video_id  = cfData.result.uid;
+					const uploadURL = cfData.result.uploadURL;
+
+					// Step 2: Upload the file directly to the pre-authorized URL.
+					// No auth headers needed — the URL is already credentialed.
+					const formData = new FormData();
+					formData.append('file', file);
+
+					const xhr = new XMLHttpRequest();
+					xhr.open('POST', uploadURL);
+
+					xhr.upload.addEventListener('progress', function (e) {
+						if (e.lengthComputable) {
+							const percentage = ((e.loaded / e.total) * 100).toFixed(2);
+							progress_wrap.show();
+							progress_bar.val(percentage);
+						}
+					});
+
+					xhr.addEventListener('load', function () {
 						$field.data('isUploading', false);
 						$field.data('currentUpload', null);
 						progress_wrap.hide();
 
-						// Display specific error messages
-						let errorMessage = 'Upload failed: ';
-						if (error.name === 'AuthError') {
-							errorMessage += 'Authentication failed. Please check your credentials.';
-						} else if (error.name === 'NotFoundError') {
-							errorMessage += 'Upload endpoint not found.';
-						} else if (currentRetry > maxRetries) {
-							errorMessage += 'Maximum retry attempts reached. Please try again later.';
-						} else {
-							errorMessage += error.message || 'Unknown error occurred.';
+						if (xhr.status < 200 || xhr.status >= 400) {
+							error_area.html('Upload failed (HTTP ' + xhr.status + '): ' + xhr.responseText).show();
+							return;
 						}
 
-						error_area.html(errorMessage).show();
+						success_area.html('Video Uploaded! Fetching media URLs...').show();
 
-						// Abort the upload
-						upload.abort();
-						return;
-					}
-
-					console.error('Upload error:', error);
-					error_area.html('Upload attempt ' + currentRetry + ' of ' + maxRetries + ' failed. Retrying...').show();
-				},
-				onProgress: function (bytesUploaded, bytesTotal) {
-					var percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2);
-					progress_wrap.show();
-					progress_bar.val(percentage);
-				},
-				onAfterResponse: function (req, res) {
-					//get video id from header
-					video_id = res.getHeader("stream-media-id");
-				},
-				onSuccess: function () {
-
-					$field.data('isUploading', false);
-					$field.data('currentUpload', null);
-
-					progress_wrap.hide();
-
-					if (video_id) {
-						success_area.html('Video Uploaded!  Fetching media URLs..').show();
-
+						// Step 3: Fetch video details via WP AJAX proxy.
 						$.ajax({
-							type: "GET",
-							url: 'https://api.cloudflare.com/client/v4/accounts/' + nsz_cloudflare_stream.account_id + '/stream/' + video_id,
-							headers: {
-								"Authorization": "Bearer " + nsz_cloudflare_stream.api_token,
-								"X-Auth-Email": nsz_cloudflare_stream.account_email,
-								"X-Auth-Key": nsz_cloudflare_stream.api_token
+							type: "POST",
+							url: ajaxurl,
+							data: {
+								action:   'nsz_cfstream_get_video',
+								nonce:    nsz_cloudflare_stream.nonce,
+								video_id: video_id
 							},
 							success: function (data) {
+								if (!data || !data.result) {
+									error_area.html('Upload succeeded but could not fetch video details: ' + cfErrorMessage(data)).show();
+									return;
+								}
 								hls_input.val(data.result.playback.hls);
 								dash_input.val(data.result.playback.dash);
 								thumbnail_input.val(data.result.thumbnail);
@@ -493,12 +438,11 @@
 								filename_input.val(data.result.meta.name);
 								filename_display.html(data.result.meta.name);
 								video_details.show();
-								video_thumbnail.attr('src', data.result.thumbnail)
+								video_thumbnail.attr('src', data.result.thumbnail);
 
 								success_area.html('Upload complete!').show();
 								video_upload.hide();
 
-								// Re-initialize autoplay/muted relationship after upload
 								handleAutoplayMutedRelationship($field);
 							},
 							error: function (data) {
@@ -506,27 +450,22 @@
 								error_area.html('Error fetching video URLs from Cloudflare.').show();
 							}
 						});
-					} else {
-						error_area.html('Video ID not found.').show();
-					}
+					});
+
+					xhr.addEventListener('error', function () {
+						$field.data('isUploading', false);
+						$field.data('currentUpload', null);
+						progress_wrap.hide();
+						error_area.html('Upload failed. Please check your connection and try again.').show();
+					});
+
+					$field.data('currentUpload', xhr);
+					xhr.send(formData);
 				},
-				onError: function(error) {
+				error: function () {
 					$field.data('isUploading', false);
-					$field.data('currentUpload', null);
-					error_area.html('Failed connecting to Cloudflare stream: ' + error).show();
+					error_area.html('Failed to initialize upload. Please try again.').show();
 				}
-			});
-
-			$field.data('currentUpload', upload);
-
-			// Check if there are any previous uploads to continue.
-			upload.findPreviousUploads().then(function (previousUploads) {
-				if (previousUploads.length) {
-					upload.resumeFromPreviousUpload(previousUploads[0]);
-				}
-
-				// Start the upload
-				upload.start();
 			});
 		});
 

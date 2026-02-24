@@ -86,9 +86,11 @@ function nsz_design_video_field_settings_page() {
         wp_die(__('You do not have sufficient permissions to access this page.'), 403);
     }
 
-    $nsz_cfstream_api_field = 'nsz_cfstream_api_key';
-    $nsz_cfstream_account_id_field = 'nsz_cfstream_account_id';
-    $nsz_cfstream_account_email_field = 'nsz_cfstream_account_email';
+    $nsz_cfstream_auth_type_field        = 'nsz_cfstream_auth_type';
+    $nsz_cfstream_api_field              = 'nsz_cfstream_api_key';
+    $nsz_cfstream_global_api_key_field   = 'nsz_cfstream_global_api_key';
+    $nsz_cfstream_account_id_field       = 'nsz_cfstream_account_id';
+    $nsz_cfstream_account_email_field    = 'nsz_cfstream_account_email';
 
     if (isset($_POST['submitted']) && $_POST['submitted'] === 'Y') {
         if (!isset($_POST['nsz_video_settings_nonce']) ||
@@ -105,11 +107,29 @@ function nsz_design_video_field_settings_page() {
             wp_die(__('Please wait a few seconds before submitting again.'), 403);
         }
 
+        // Save auth type (plain text, validated against allowed values)
+        $allowed_auth_types = array('api_token', 'global_api_key');
+        $submitted_auth_type = isset($_POST[$nsz_cfstream_auth_type_field])
+            ? sanitize_text_field($_POST[$nsz_cfstream_auth_type_field])
+            : 'global_api_key';
+        $nsz_cfstream_auth_type_value = in_array($submitted_auth_type, $allowed_auth_types)
+            ? $submitted_auth_type
+            : 'global_api_key';
+        update_option($nsz_cfstream_auth_type_field, $nsz_cfstream_auth_type_value);
+
+        // Save API Token (encrypted)
         $nsz_cfstream_api_value = get_option($nsz_cfstream_api_field, null);
         if (isset($_POST[$nsz_cfstream_api_field]) && !str_contains($_POST[$nsz_cfstream_api_field], '*')) {
             $nsz_cfstream_api_value = nsz_encrypt_value(sanitize_text_field($_POST[$nsz_cfstream_api_field]));
         }
         update_option($nsz_cfstream_api_field, $nsz_cfstream_api_value);
+
+        // Save Global API Key (encrypted)
+        $nsz_cfstream_global_api_key_value = get_option($nsz_cfstream_global_api_key_field, null);
+        if (isset($_POST[$nsz_cfstream_global_api_key_field]) && !str_contains($_POST[$nsz_cfstream_global_api_key_field], '*')) {
+            $nsz_cfstream_global_api_key_value = nsz_encrypt_value(sanitize_text_field($_POST[$nsz_cfstream_global_api_key_field]));
+        }
+        update_option($nsz_cfstream_global_api_key_field, $nsz_cfstream_global_api_key_value);
 
         $nsz_cfstream_account_id_value = isset($_POST[$nsz_cfstream_account_id_field])
                 ? nsz_encrypt_value(sanitize_text_field($_POST[$nsz_cfstream_account_id_field]))
@@ -131,9 +151,11 @@ function nsz_design_video_field_settings_page() {
         );
     }
 
-    $nsz_cfstream_api_value = nsz_decrypt_value(get_option($nsz_cfstream_api_field, ''));
-    $nsz_cfstream_account_id_value = nsz_decrypt_value(get_option($nsz_cfstream_account_id_field, ''));
-    $nsz_cfstream_account_email_value = nsz_decrypt_value(get_option($nsz_cfstream_account_email_field, ''));
+    $nsz_cfstream_auth_type_value       = get_option($nsz_cfstream_auth_type_field, 'global_api_key');
+    $nsz_cfstream_api_value             = nsz_decrypt_value(get_option($nsz_cfstream_api_field, ''));
+    $nsz_cfstream_global_api_key_value  = nsz_decrypt_value(get_option($nsz_cfstream_global_api_key_field, ''));
+    $nsz_cfstream_account_id_value      = nsz_decrypt_value(get_option($nsz_cfstream_account_id_field, ''));
+    $nsz_cfstream_account_email_value   = nsz_decrypt_value(get_option($nsz_cfstream_account_email_field, ''));
 
     $wordmark_url = esc_url(plugins_url('assets/wordmark.svg', __FILE__));
 
@@ -158,10 +180,57 @@ function nsz_design_video_field_settings_page() {
 
                     <div class="nsz-design-video-row">
                         <div>
+                            <label><?php esc_html_e('Authentication Type:'); ?> <span class="required">*</span></label>
+                            <br><br>
+                            <label style="margin-right: 1.5rem;">
+                                <input
+                                    type="radio"
+                                    name="<?php echo esc_attr($nsz_cfstream_auth_type_field); ?>"
+                                    value="global_api_key"
+                                    <?php checked($nsz_cfstream_auth_type_value, 'global_api_key'); ?>
+                                >
+                                <?php esc_html_e('Global API Key'); ?>
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="<?php echo esc_attr($nsz_cfstream_auth_type_field); ?>"
+                                    value="api_token"
+                                    <?php checked($nsz_cfstream_auth_type_value, 'api_token'); ?>
+                                >
+                                <?php esc_html_e('API Token (Bearer)'); ?>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="nsz-design-video-row" id="row-global-api-key">
+                        <div>
+                            <label for="<?php echo esc_attr($nsz_cfstream_global_api_key_field); ?>">
+                                <?php esc_html_e('Global API Key:'); ?> <span class="required">*</span>
+                            </label>
+                            <input
+                                   type="text"
+                                   id="<?php echo esc_attr($nsz_cfstream_global_api_key_field); ?>"
+                                   name="<?php echo esc_attr($nsz_cfstream_global_api_key_field); ?>"
+                                   value="<?php echo esc_attr(nsz_obfuscate_string($nsz_cfstream_global_api_key_value)); ?>"
+                                   size="35">
+                            <br><br>
+                            <span class="small">
+                                <a href="https://developers.cloudflare.com/fundamentals/api/get-started/keys/"
+                                   target="_blank"
+                                   rel="noopener noreferrer">
+                                    <?php esc_html_e('How to find your Global API Key'); ?>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="nsz-design-video-row" id="row-api-token">
+                        <div>
                             <label for="<?php echo esc_attr($nsz_cfstream_api_field); ?>">
                                 <?php esc_html_e('API Token:'); ?> <span class="required">*</span>
                             </label>
-                            <input required
+                            <input
                                    type="text"
                                    id="<?php echo esc_attr($nsz_cfstream_api_field); ?>"
                                    name="<?php echo esc_attr($nsz_cfstream_api_field); ?>"
@@ -200,12 +269,12 @@ function nsz_design_video_field_settings_page() {
                         </div>
                     </div>
 
-                    <div class="nsz-design-video-row">
+                    <div class="nsz-design-video-row" id="row-account-email">
                         <div>
                             <label for="<?php echo esc_attr($nsz_cfstream_account_email_field); ?>">
                                 <?php esc_html_e('Account Email:'); ?> <span class="required">*</span>
                             </label>
-                            <input required
+                            <input
                                    type="email"
                                    id="<?php echo esc_attr($nsz_cfstream_account_email_field); ?>"
                                    name="<?php echo esc_attr($nsz_cfstream_account_email_field); ?>"
@@ -227,6 +296,30 @@ function nsz_design_video_field_settings_page() {
             </div>
         </section>
     </section>
+
+    <script>
+    (function () {
+        function toggleAuthFields() {
+            var checked = document.querySelector('input[name="nsz_cfstream_auth_type"]:checked');
+            var authType = checked ? checked.value : 'global_api_key';
+            var isGlobal = authType === 'global_api_key';
+
+            document.getElementById('row-global-api-key').style.display = isGlobal ? '' : 'none';
+            document.getElementById('row-api-token').style.display      = isGlobal ? 'none' : '';
+            document.getElementById('row-account-email').style.display  = isGlobal ? '' : 'none';
+
+            document.getElementById('nsz_cfstream_global_api_key').required = isGlobal;
+            document.getElementById('nsz_cfstream_api_key').required         = !isGlobal;
+            document.getElementById('nsz_cfstream_account_email').required   = isGlobal;
+        }
+
+        document.querySelectorAll('input[name="nsz_cfstream_auth_type"]').forEach(function (radio) {
+            radio.addEventListener('change', toggleAuthFields);
+        });
+
+        toggleAuthFields();
+    })();
+    </script>
     <?php
 }
 
