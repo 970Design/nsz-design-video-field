@@ -152,7 +152,8 @@
     display: block;
 }
 
-.nsz-design-video-admin input:not([type="submit"]):not([type="radio"]) {
+.nsz-design-video-admin input[type="text"],
+.nsz-design-video-admin input[type="password"] {
     min-width: 22rem;
 }
 
