@@ -5,7 +5,7 @@ An Advanced Custom Fields (ACF) Field for Cloudflare Stream that allows you to u
 ## Requirements
 
 - WordPress 6.4+
-- PHP 7.4+
+- PHP 8.3+
 - Advanced Custom Fields (ACF)
 - Cloudflare Stream subscription
 
