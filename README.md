@@ -60,6 +60,23 @@ If You are getting the error "Error fetching videos from Cloudflare" or "Failed 
 
 Your Cloudflare credentials are encrypted and only saved locally on your WordPress installation, and are not transferred or shared with any external services.
 
+### Stable Encryption Key (optional)
+
+By default the AES-256 encryption key is derived from the WordPress salts
+(`AUTH_SALT` / `SECURE_AUTH_SALT`), which differ per environment — so encrypted
+credentials cannot be decrypted after a database transfer between environments.
+
+To make encrypted values portable, define `NSZ_ENCRYPTION_SALT` with the *same* value in
+every environment (e.g. in Bedrock's `config/application.php`):
+
+```php
+Config::define('NSZ_ENCRYPTION_SALT', env('NSZ_ENCRYPTION_SALT') ?: '');
+```
+
+Opting in is non-destructive: values encrypted before the constant was set still decrypt
+via the WordPress-salt fallback. A value only becomes transfer-proof once it has been
+re-saved (re-encrypted under the shared salt) after the constant is in place.
+
 ## License
 
 GPLv2 or later - [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)

@@ -2,13 +2,37 @@
 
 if (!defined('ABSPATH')) exit; // Exit if accessed directly
 
+if (!function_exists('nsz_get_encryption_keys')) {
+    /**
+     * Binary AES-256 keys in decryption priority order; the first key is
+     * always used for encryption.
+     *
+     * When NSZ_ENCRYPTION_SALT is defined (same value in every environment),
+     * keys derive from it so encrypted values survive database transfers
+     * between environments. The WordPress-salt key remains as a decryption
+     * fallback for values encrypted before the constant was introduced.
+     */
+    function nsz_get_encryption_keys() {
+        $keys = [];
+
+        if (defined('NSZ_ENCRYPTION_SALT') && is_string(NSZ_ENCRYPTION_SALT) && NSZ_ENCRYPTION_SALT !== '') {
+            $keys[] = hash('sha256', NSZ_ENCRYPTION_SALT, true);
+        }
+
+        $keys[] = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
+
+        return $keys;
+    }
+}
+
 if (!function_exists('nsz_encrypt_value')) {
     function nsz_encrypt_value($value) {
         if (empty($value)) {
             return '';
         }
 
-        $key = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
+        $keys = nsz_get_encryption_keys();
+        $key = $keys[0];
         $iv = openssl_random_pseudo_bytes(16);
         $encrypted = openssl_encrypt(
                 $value,
@@ -49,16 +73,22 @@ if (!function_exists('nsz_decrypt_value')) {
         }
 
         $encrypted = substr($decoded, 16);
-        $key = hash('sha256', AUTH_SALT . SECURE_AUTH_SALT, true);
-        $decrypted = openssl_decrypt(
-                $encrypted,
-                'AES-256-CBC',
-                $key,
-                0,
-                $iv
-        );
 
-        return $decrypted === false ? '' : $decrypted;
+        foreach (nsz_get_encryption_keys() as $key) {
+            $decrypted = openssl_decrypt(
+                    $encrypted,
+                    'AES-256-CBC',
+                    $key,
+                    0,
+                    $iv
+            );
+
+            if ($decrypted !== false) {
+                return $decrypted;
+            }
+        }
+
+        return '';
     }
 }
 
