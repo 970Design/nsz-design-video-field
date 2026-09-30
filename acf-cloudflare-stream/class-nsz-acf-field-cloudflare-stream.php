@@ -115,8 +115,6 @@ class nsz_design_video_field_acf_field_cloudflare_stream extends \acf_field {
         add_action( 'wp_ajax_nsz_cfstream_delete_video',     array( $this, 'ajax_delete_video' ) );
         add_action( 'wp_ajax_nsz_cfstream_create_upload_url', array( $this, 'ajax_create_upload_url' ) );
 
-        $this->input_admin_enqueue_scripts();
-
         parent::__construct();
     }
 
